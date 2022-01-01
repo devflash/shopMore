@@ -6,10 +6,10 @@ const wrapper = css`
   height: 100%;
   background-color: #ecf0f1;
 `;
-const Layout = ({ children }) => (
+const Layout = ({ children, layoutStyle }) => (
   <>
     <Header />
-    <div css={wrapper}>{children}</div>
+    <div css={[wrapper, layoutStyle]}>{children}</div>
   </>
 );
 export default Layout;

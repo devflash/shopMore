@@ -56,7 +56,7 @@ const productinfo = css`
 const Products = ({ products }) => (
   <div css={wrapper}>
     {products.map((cur) => (
-      <Link href={`/product/${cur.id}`} key={cur.id} passHref>
+      <Link href={`/product/${cur.productId}`} key={cur.id} passHref>
         <a css={productLink}>
           <div css={card}>
             <div css={imageWrapper}>
@@ -66,7 +66,7 @@ const Products = ({ products }) => (
             <h3>{cur.title}</h3>
             <div css={productinfo}>
               <span>Cost: {cur.price}</span>
-              <span>Rating: {cur.rating.rate}</span>
+              <span>Rating: {cur.rating}</span>
             </div>
           </div>
         </a>

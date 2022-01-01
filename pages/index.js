@@ -1,7 +1,8 @@
 import Head from 'next/head';
 import Layout from '../components/layout';
-import { Global, css } from '@emotion/react';
 import Products from '../components/products';
+import { server } from '../config';
+
 export default function Home({ products }) {
   console.log(products);
   return (
@@ -14,30 +15,19 @@ export default function Home({ products }) {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Global
-        styles={css`
-          *,
-          ::before,
-          ::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-size: 16px;
-          }
-        `}
-      />
+
       <Layout>{<Products products={products} />}</Layout>
     </div>
   );
 }
 
 export const getServerSideProps = async () => {
-  const response = await fetch('https://fakestoreapi.com/products');
-  const data = await response.json();
-  console.log(data);
+  const response = await fetch(`${server}/api/products`);
+  const products = await response.json();
+
   return {
     props: {
-      products: data.slice(10),
+      products: products,
     },
   };
 };

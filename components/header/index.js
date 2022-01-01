@@ -7,6 +7,9 @@ import Link from 'next/link';
 
 const header = css`
   color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   @media screen and (min-width: 375px) {
     display: flex;
     justify-content: space-between;
@@ -53,6 +56,7 @@ const navList = css`
   transition-property: bottom;
   transition-duration: 1s;
   transition-timing-function: ease-in-out;
+  z-index: 100;
   @media screen and (min-width: 375px) {
     position: unset;
     border-top-left-radius: 0px;
