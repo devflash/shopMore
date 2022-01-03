@@ -122,7 +122,7 @@ const Header = () => {
             </Link>
           </li>
           <li>
-            <Link href="/" type="button" passHref>
+            <Link href="/signin" type="button" passHref>
               <a css={navLink}>Login</a>
             </Link>
           </li>
