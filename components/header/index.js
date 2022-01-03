@@ -117,7 +117,7 @@ const Header = () => {
       <nav css={[navList, show && showMenu]}>
         <ul css={navItems}>
           <li>
-            <Link href="/" type="button" passHref>
+            <Link href="/signup" type="button" passHref>
               <a css={navLink}>Sign Up</a>
             </Link>
           </li>

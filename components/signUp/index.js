@@ -2,6 +2,10 @@
 import { useReducer } from 'react';
 import { css } from '@emotion/react';
 import Input from '../common/input';
+import { useAuth } from '../../context';
+import { firestore } from '../../utils/firebase';
+import { useRouter } from 'next/router';
+
 const flex = css`
   display: flex;
   align-items: center;
@@ -66,6 +70,9 @@ const initialState = {
 };
 
 const SignUp = () => {
+  const { createUser } = useAuth();
+  const router = useRouter();
+
   const [state, dispatch] = useReducer((state, newState) => {
     return { ...state, ...newState };
   }, initialState);
@@ -96,7 +103,7 @@ const SignUp = () => {
       dispatch({ emailError: 'Please Enter your first name' });
       isValid = false;
     }
-    if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(state.email)) {
+    if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(state.email)) {
       dispatch({ emailError: 'Please Enter a valid email address' });
       isValid = false;
     }
@@ -109,7 +116,21 @@ const SignUp = () => {
   const handleCreateAccount = (event) => {
     event.preventDefault();
     if (validateInput()) {
-      alert('Account created successfully');
+      createUser(state.email, state.password).then((user) => {
+        console.log(user);
+        const payload = {
+          firstName: state.firstName,
+          lastName: state.lastName,
+        };
+        firestore
+          .collection('users')
+          .add(payload)
+          .then(() => {
+            alert('Account created successfully');
+            dispatch({ firstName: '', lastName: '', email: '', password: '' });
+            router.push(' /');
+          });
+      });
     }
   };
   return (
@@ -120,6 +141,7 @@ const SignUp = () => {
           <form>
             <div css={row}>
               <Input
+                id="firstName"
                 labelTitle="First name"
                 value={state.firstName}
                 onValueChange={(e) => onFirstNameChanged(e.target.value)}
@@ -129,6 +151,7 @@ const SignUp = () => {
             </div>
             <div css={row}>
               <Input
+                id="lastName"
                 labelTitle="Last name"
                 value={state.lastName}
                 onValueChange={(e) => onLastNameChanged(e.target.value)}
@@ -138,6 +161,8 @@ const SignUp = () => {
             </div>
             <div css={row}>
               <Input
+                id="email"
+                type="email"
                 labelTitle="Email address"
                 value={state.email}
                 onValueChange={(e) => onEmailChanged(e.target.value)}
@@ -147,6 +172,8 @@ const SignUp = () => {
             </div>
             <div css={row}>
               <Input
+                id="password"
+                type="password"
                 labelTitle="Password"
                 value={state.password}
                 onValueChange={(e) => onPasswordChanged(e.target.value)}

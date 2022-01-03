@@ -1,4 +1,7 @@
 import { Global, css } from '@emotion/react';
+
+import AuthContextProvider from '../context';
+
 function MyApp({ Component, pageProps }) {
   return (
     <>
@@ -14,7 +17,9 @@ function MyApp({ Component, pageProps }) {
           }
         `}
       />
-      <Component {...pageProps} />
+      <AuthContextProvider>
+        <Component {...pageProps} />
+      </AuthContextProvider>
     </>
   );
 }
