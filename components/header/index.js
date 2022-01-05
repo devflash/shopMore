@@ -4,7 +4,9 @@ import { css } from '@emotion/react';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { ImCross } from 'react-icons/im';
 import Link from 'next/link';
-
+import { useAuth } from '../../context';
+import Button from '../common/button';
+import { useRouter } from 'next/router';
 const header = css`
   color: #fff;
   position: sticky;
@@ -72,6 +74,7 @@ const navItems = css`
     display: flex;
     justify-content: flex-end;
     color: #fff;
+    align-items: center;
   }
   li {
     margin: 20px;
@@ -97,8 +100,20 @@ const hideIcon = css`
   transform: scale(0);
 `;
 
+const btnCss = css`
+  padding: 10px;
+`;
+
 const Header = () => {
   const [show, setShow] = useState(false);
+  const { authUser, signOutUser } = useAuth();
+
+  const router = useRouter();
+  const handleSignOut = () => {
+    signOutUser().then(() => router.push('/signin'));
+  };
+
+  console.log(authUser);
   return (
     <header css={header}>
       <div css={navHeader}>
@@ -116,16 +131,25 @@ const Header = () => {
       </div>
       <nav css={[navList, show && showMenu]}>
         <ul css={navItems}>
-          <li>
-            <Link href="/signup" type="button" passHref>
-              <a css={navLink}>Sign Up</a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/signin" type="button" passHref>
-              <a css={navLink}>Login</a>
-            </Link>
-          </li>
+          {!authUser && (
+            <>
+              <li>
+                <Link href="/signup" type="button" passHref>
+                  <a css={navLink}>Sign Up</a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/signin" type="button" passHref>
+                  <a css={navLink}>Login</a>
+                </Link>
+              </li>
+            </>
+          )}
+          {authUser.displayName && (
+            <li>
+              <span css={navLink}>Welcome {authUser.displayName}</span>
+            </li>
+          )}
           <li>
             <Link href="/" type="button" passHref>
               <a css={navLink}>Orders</a>
@@ -136,6 +160,15 @@ const Header = () => {
               <a css={navLink}>Wishlist</a>
             </Link>
           </li>
+          {authUser && (
+            <li>
+              <Button
+                onClick={handleSignOut}
+                label="Sign out"
+                customCss={btnCss}
+              ></Button>
+            </li>
+          )}
         </ul>
       </nav>
     </header>

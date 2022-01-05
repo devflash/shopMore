@@ -5,6 +5,7 @@ import Input from '../common/input';
 import { useAuth } from '../../context';
 import { firestore } from '../../utils/firebase';
 import { useRouter } from 'next/router';
+import Button from '../common/button';
 
 const flex = css`
   display: flex;
@@ -33,16 +34,6 @@ const row = css`
 
 const note = css`
   font-size: 0.7rem;
-`;
-
-const createBtn = css`
-  border: none;
-  background-color: #ffd814;
-  border-color: #fcd200;
-  border-radius: 10px;
-  padding: 12px 20px;
-  cursor: pointer;
-  margin: 0 auto;
 `;
 
 const alignCenter = css`
@@ -116,7 +107,11 @@ const SignUp = () => {
   const handleCreateAccount = (event) => {
     event.preventDefault();
     if (validateInput()) {
-      createUser(state.email, state.password).then((user) => {
+      createUser(
+        state.email,
+        state.password,
+        `${state.firstName} ${state.lastName}`
+      ).then((user) => {
         console.log(user);
         const payload = {
           firstName: state.firstName,
@@ -184,9 +179,10 @@ const SignUp = () => {
               </span>
             </div>
             <div css={alignCenter}>
-              <button css={createBtn} onClick={(e) => handleCreateAccount(e)}>
-                Create account
-              </button>
+              <Button
+                onClick={(e) => handleCreateAccount(e)}
+                label=" Create account"
+              ></Button>
             </div>
           </form>
         </div>

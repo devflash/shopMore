@@ -4,6 +4,9 @@ import useFireBaseAuth from '../hooks/useFirebaseAuth';
 
 const authContext = createContext({
   createUser: async () => {},
+  signInUser: async () => {},
+  signOutUser: async () => {},
+  authUser: null,
 });
 const AuthContextProvider = ({ children }) => {
   const auth = useFireBaseAuth();
