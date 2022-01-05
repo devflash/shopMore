@@ -2,6 +2,8 @@
 import { useReducer } from 'react';
 import { css } from '@emotion/react';
 import Input from '../common/input';
+import { useAuth } from '../../context';
+import { useRouter } from 'next/router';
 
 const flex = css`
   display: flex;
@@ -67,6 +69,9 @@ const SignIn = () => {
     return { ...state, ...newState };
   }, initialState);
 
+  const { signInUser } = useAuth();
+  const router = useRouter();
+
   const onEmailChanged = (email) => {
     dispatch({ email, emailError: null });
   };
@@ -74,8 +79,34 @@ const SignIn = () => {
     dispatch({ password, passwordError: null });
   };
 
-  const handleUserLogin = () => {
-    console.log('User logged in');
+  const validateInput = () => {
+    let isValid = true;
+    if (!state.email) {
+      dispatch({ emailError: 'Please Enter your email address' });
+      isValid = false;
+    }
+    if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(state.email)) {
+      dispatch({ emailError: 'Please Enter a valid email address' });
+      isValid = false;
+    }
+    if (!state.password) {
+      dispatch({ passwordError: 'Please enter password' });
+      isValid = false;
+    }
+    return isValid;
+  };
+
+  const handleUserLogin = (e) => {
+    e.preventDefault();
+    if (validateInput()) {
+      signInUser(state.email, state.password)
+        .then(() => {
+          router.push('/');
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
   };
 
   return (
