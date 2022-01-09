@@ -1,6 +1,12 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
 import Image from 'next/image';
+import { useAuth } from '../../context';
+import { useRouter } from 'next/router';
+import { server } from '../../config';
+import Toast from '../common/toast';
+import { useState } from 'react';
+import { errors } from '../../config/strings';
 
 const wrapper = css`
   padding-top: 50px;
@@ -94,48 +100,82 @@ const greyback = css`
   color: #fff;
 `;
 
-const Product = ({ product }) => (
-  <>
-    <div css={wrapper}>
-      <div css={imageWrapper}>
-        <Image src={product.image} alt={product.title} layout="fill" />
-      </div>
-      <div css={info}>
-        <h2>{product.title}</h2>
-        <div css={productinfo}>
-          <div css={row}>
-            <span>Price: {product.price}</span>
-            <span>Rating: {product.rating}</span>
-          </div>
-          <div css={row}>
-            <span>Category: {product.category}</span>
-            <span>
-              Status:{' '}
-              <span css={product.stock > 0 ? inStock : outOfStock}>
-                In stock
+const Product = ({ product }) => {
+  const { authUser } = useAuth();
+  const router = useRouter();
+  const [error, setError] = useState(null);
+  const handleWishlist = async () => {
+    if (authUser) {
+      try {
+        const payload = {
+          ...product,
+          userId: authUser.uid,
+        };
+        const response = await fetch(`${server}/api/wishlist`, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const data = await response.json();
+        debugger;
+        if (data.msg === 'success') {
+          console.log('Added to wishlist');
+        }
+        if (data.error) {
+          setError(errors[data.error.slice(7)]);
+        }
+      } catch (error) {
+        console.log('error response');
+      }
+    } else {
+      router.push('/signin');
+    }
+  };
+
+  return (
+    <>
+      {error && <Toast error={error} />}
+      <div css={wrapper}>
+        <div css={imageWrapper}>
+          <Image src={product.image} alt={product.title} layout="fill" />
+        </div>
+        <div css={info}>
+          <h2>{product.title}</h2>
+          <div css={productinfo}>
+            <div css={row}>
+              <span>Price: {product.price}</span>
+              <span>Rating: {product.rating}</span>
+            </div>
+            <div css={row}>
+              <span>Category: {product.category}</span>
+              <span>
+                Status:{' '}
+                <span css={product.stock > 0 ? inStock : outOfStock}>
+                  In stock
+                </span>
               </span>
-            </span>
+            </div>
+          </div>
+          <p>{product.description}</p>
+          <div css={btnContainer}>
+            <button type="button" css={productBtn} onClick={handleWishlist}>
+              Add to wishlist
+            </button>
+            <button
+              type="button"
+              disabled={product.stock <= 0}
+              css={[productBtn, product.stock <= 0 && greyback]}
+            >
+              Add to cart
+            </button>
           </div>
         </div>
-        <p>{product.description}</p>
-        <div css={btnContainer}>
-          <button type="button" css={productBtn}>
-            Add to wishlist
-          </button>
-          <button
-            type="button"
-            disabled={product.stock <= 0}
-            css={[productBtn, product.stock <= 0 && greyback]}
-          >
-            Add to cart
-          </button>
-        </div>
       </div>
-    </div>
-    <button type="button" css={fixedCartBtn}>
-      Add to cart
-    </button>
-  </>
-);
+      <button type="button" css={fixedCartBtn}>
+        Add to cart
+      </button>
+    </>
+  );
+};
 
 export default Product;

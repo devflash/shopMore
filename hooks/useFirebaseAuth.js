@@ -9,9 +9,11 @@ const useFireBaseAuth = () => {
     return await auth
       .createUserWithEmailAndPassword(email, password)
       .then((result) =>
-        result.user.updateProfile({
-          displayName,
-        })
+        result.user
+          .updateProfile({
+            displayName,
+          })
+          .then(() => result)
       );
   };
 

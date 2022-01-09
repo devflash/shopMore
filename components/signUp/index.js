@@ -112,6 +112,7 @@ const SignUp = () => {
         state.password,
         `${state.firstName} ${state.lastName}`
       ).then((user) => {
+        debugger;
         console.log(user);
         const payload = {
           firstName: state.firstName,
@@ -119,7 +120,8 @@ const SignUp = () => {
         };
         firestore
           .collection('users')
-          .add(payload)
+          .doc(user.user.uid)
+          .set(payload)
           .then(() => {
             alert('Account created successfully');
             dispatch({ firstName: '', lastName: '', email: '', password: '' });

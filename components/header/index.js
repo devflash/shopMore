@@ -145,7 +145,7 @@ const Header = () => {
               </li>
             </>
           )}
-          {authUser.displayName && (
+          {authUser?.displayName && (
             <li>
               <span css={navLink}>Welcome {authUser.displayName}</span>
             </li>
