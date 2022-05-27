@@ -6,6 +6,8 @@ import { useAuth } from '../../context';
 import { firestore } from '../../utils/firebase';
 import { useRouter } from 'next/router';
 import Button from '../common/button';
+import { getErrorMessage } from '../../utils/handleError';
+import Toast from '../common/toast';
 
 const flex = css`
   display: flex;
@@ -58,6 +60,7 @@ const initialState = {
   lastNameError: null,
   emailError: null,
   passwordError: null,
+  serviceError: null,
 };
 
 const SignUp = () => {
@@ -104,34 +107,40 @@ const SignUp = () => {
     }
     return isValid;
   };
-  const handleCreateAccount = (event) => {
+  const handleCreateAccount = async (event) => {
     event.preventDefault();
     if (validateInput()) {
-      createUser(
-        state.email,
-        state.password,
-        `${state.firstName} ${state.lastName}`
-      ).then((user) => {
-        debugger;
-        console.log(user);
+      try {
+        const user = await createUser(
+          state.email,
+          state.password,
+          `${state.firstName} ${state.lastName}`
+        );
         const payload = {
           firstName: state.firstName,
           lastName: state.lastName,
         };
-        firestore
-          .collection('users')
-          .doc(user.user.uid)
-          .set(payload)
-          .then(() => {
-            alert('Account created successfully');
-            dispatch({ firstName: '', lastName: '', email: '', password: '' });
-            router.push(' /');
-          });
-      });
+        await firestore.collection('users').doc(user.user.id).set(payload);
+        alert('Account created successfully');
+        dispatch({
+          firstName: '',
+          lastName: '',
+          email: '',
+          password: '',
+        });
+        router.push(' /');
+      } catch (e) {
+        const errorMessage = getErrorMessage(e);
+        dispatch({ serviceError: errorMessage });
+        console.log(e.code);
+      }
     }
   };
   return (
     <div css={flex}>
+      {state.serviceError && (
+        <Toast error={state.serviceError} isError={true} />
+      )}
       <div css={wrapper}>
         <h1>ShopMore</h1>
         <div css={container}>
