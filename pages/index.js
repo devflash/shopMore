@@ -22,7 +22,7 @@ export default function Home({ products }) {
 }
 
 export const getServerSideProps = async () => {
-  const response = await fetch(`${server}/api/products`);
+  const response = await fetch(`http://localhost:3000/api/products`);
   const products = await response.json();
 
   return {

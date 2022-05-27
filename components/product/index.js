@@ -117,7 +117,6 @@ const Product = ({ product }) => {
           headers: { 'Content-Type': 'application/json' },
         });
         const data = await response.json();
-        debugger;
         if (data.msg === 'success') {
           console.log('Added to wishlist');
         }
@@ -151,7 +150,7 @@ const Product = ({ product }) => {
               <span>
                 Status:{' '}
                 <span css={product.stock > 0 ? inStock : outOfStock}>
-                  In stock
+                  {product.stock > 0 ? 'In stock' : 'Out of stock'}
                 </span>
               </span>
             </div>

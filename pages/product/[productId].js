@@ -20,7 +20,10 @@ export const getServerSideProps = async (context) => {
   const {
     params: { productId },
   } = context;
-  const response = await fetch(`${server}/api/product/${productId}`);
+  console.log(server);
+  const response = await fetch(
+    `http://localhost:3000/api/product/${productId}`
+  );
   const data = await response.json();
   return {
     props: {

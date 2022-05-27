@@ -21,6 +21,8 @@ const header = css`
 
 const title = css`
   font-size: 1.2rem;
+  text-decoration: none;
+  color: #fff;
 `;
 
 const iconsMenu = css`
@@ -117,7 +119,9 @@ const Header = () => {
   return (
     <header css={header}>
       <div css={navHeader}>
-        <p css={title}>Shop More</p>
+        <Link href="/" type="button" passHref>
+          <a css={title}>Shop More</a>
+        </Link>
         <div css={iconsMenu}>
           <GiHamburgerMenu
             css={[icon, !show ? showIcon : hideIcon]}
@@ -150,24 +154,27 @@ const Header = () => {
               <span css={navLink}>Welcome {authUser.displayName}</span>
             </li>
           )}
-          <li>
-            <Link href="/" type="button" passHref>
-              <a css={navLink}>Orders</a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/" type="button" passHref>
-              <a css={navLink}>Wishlist</a>
-            </Link>
-          </li>
           {authUser && (
-            <li>
-              <Button
-                onClick={handleSignOut}
-                label="Sign out"
-                customCss={btnCss}
-              ></Button>
-            </li>
+            <>
+              <li>
+                <Link href="/" type="button" passHref>
+                  <a css={navLink}>Orders</a>
+                </Link>
+              </li>
+              <li>
+                <Link href={`/wishlist/${authUser.uid}`} type="button" passHref>
+                  <a css={navLink}>Wishlist</a>
+                </Link>
+              </li>
+
+              <li>
+                <Button
+                  onClick={handleSignOut}
+                  label="Sign out"
+                  customCss={btnCss}
+                ></Button>
+              </li>
+            </>
           )}
         </ul>
       </nav>

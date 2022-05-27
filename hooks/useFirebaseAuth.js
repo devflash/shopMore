@@ -32,7 +32,10 @@ const useFireBaseAuth = () => {
     } else {
       const token = await user.getIdToken();
       setAuthUser(user);
-      nookies.set(undefined, 'token', token, { path: '/' });
+      nookies.set(undefined, 'token', token, {
+        maxAge: 5 * 60,
+        path: '/',
+      });
     }
   };
 
