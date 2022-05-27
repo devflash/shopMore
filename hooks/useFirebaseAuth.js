@@ -6,19 +6,22 @@ const useFireBaseAuth = () => {
   const [authUser, setAuthUser] = useState(null);
 
   const createUser = async (email, password, displayName) => {
-    return await auth
-      .createUserWithEmailAndPassword(email, password)
-      .then((result) =>
-        result.user
-          .updateProfile({
-            displayName,
-          })
-          .then(() => result)
-      );
+    try {
+      const result = await auth.createUserWithEmailAndPassword(email, password);
+      await result.user.updateProfile({ displayName });
+      debugger;
+      return result;
+    } catch (e) {
+      throw e;
+    }
   };
 
   const signInUser = async (email, password) => {
-    return await auth.signInWithEmailAndPassword(email, password);
+    try {
+      return await auth.signInWithEmailAndPassword(email, password);
+    } catch (e) {
+      throw e;
+    }
   };
 
   const signOutUser = async () => {

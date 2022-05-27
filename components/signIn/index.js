@@ -4,7 +4,8 @@ import { css } from '@emotion/react';
 import Input from '../common/input';
 import { useAuth } from '../../context';
 import { useRouter } from 'next/router';
-
+import { getErrorMessage } from '../../utils/handleError';
+import Toast from '../common/toast';
 const flex = css`
   display: flex;
   align-items: center;
@@ -62,6 +63,7 @@ const initialState = {
   password: '',
   emailError: '',
   passwordError: '',
+  serviceError: '',
 };
 
 const SignIn = () => {
@@ -96,21 +98,28 @@ const SignIn = () => {
     return isValid;
   };
 
-  const handleUserLogin = (e) => {
+  const handleUserLogin = async (e) => {
     e.preventDefault();
     if (validateInput()) {
-      signInUser(state.email, state.password)
-        .then(() => {
-          router.push('/');
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      try {
+        await signInUser(state.email, state.password);
+        router.push('/');
+      } catch (e) {
+        const serviceError = getErrorMessage(e);
+        dispatch({ serviceError });
+      }
     }
   };
 
   return (
     <div css={flex}>
+      <Toast
+        open={state.serviceError}
+        text={state.serviceError}
+        callback={() => dispatch({ serviceError: '' })}
+        isError={true}
+      />
+
       <div css={wrapper}>
         <h1>ShopMore</h1>
         <div css={container}>

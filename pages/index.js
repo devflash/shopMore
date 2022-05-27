@@ -4,7 +4,6 @@ import Products from '../components/products';
 import { server } from '../config';
 
 export default function Home({ products }) {
-  console.log(products);
   return (
     <div>
       <Head>
@@ -24,7 +23,6 @@ export default function Home({ products }) {
 export const getServerSideProps = async () => {
   const response = await fetch(`http://localhost:3000/api/products`);
   const products = await response.json();
-
   return {
     props: {
       products: products,
