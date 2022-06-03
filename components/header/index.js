@@ -166,6 +166,11 @@ const Header = () => {
                   <a css={navLink}>Wishlist</a>
                 </Link>
               </li>
+              <li>
+                <Link href={`/cart/${authUser.uid}`} type="button" passHref>
+                  <a css={navLink}>Cart</a>
+                </Link>
+              </li>
 
               <li>
                 <Button
