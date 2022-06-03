@@ -9,7 +9,6 @@ const useFireBaseAuth = () => {
     try {
       const result = await auth.createUserWithEmailAndPassword(email, password);
       await result.user.updateProfile({ displayName });
-      debugger;
       return result;
     } catch (e) {
       throw e;

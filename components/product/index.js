@@ -131,6 +131,30 @@ const Product = ({ product }) => {
     }
   };
 
+  const handleAddToCart = async () => {
+    if (authUser) {
+      try {
+        const payload = {
+          ...product,
+          userId: authUser.uid,
+        };
+        const response = await fetch(`${server}/api/cart/add`, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const data = await response.json();
+        if (data.msg === 'PRODUCT_ADDED_CART') {
+          // alert('Product added to cart');
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    } else {
+      router.push('/signin');
+    }
+  };
+
   return (
     <>
       {error && <Toast error={error} />}
@@ -163,6 +187,7 @@ const Product = ({ product }) => {
             <button
               type="button"
               disabled={product.stock <= 0}
+              onClick={handleAddToCart}
               css={[productBtn, product.stock <= 0 && greyback]}
             >
               Add to cart
