@@ -3,6 +3,8 @@ import { css } from '@emotion/react';
 import { useReducer } from 'react';
 import Input from '../common/input';
 import Button from '../common/button';
+import Dialog from '../common/dialog';
+
 const wrapper = css`
   width: 90%;
   max-width: 550px;
@@ -259,42 +261,45 @@ const OrderAddress = () => {
     }
   };
   return (
-    <div css={wrapper}>
-      <div css={topText}>
-        <h1>Checkout 3 Items</h1>
-        <p>Enter a address for the delivery</p>
-      </div>
-      <div css={addressBox}>
-        {Object.values(state.inputs).map(
-          ({ id, value, label, type, max, error }) => (
-            <div key={id} css={row}>
-              <Input
-                value={value}
-                labelTitle={label}
-                type={type}
-                onValueChange={(e) => handleInputChange(id, e.target.value)}
-                maxLength={max}
-                customCss={inputCSS(error)}
-              />
-              {error && <span css={errorCss}>{error}</span>}
-            </div>
-          )
-        )}
+    <>
+      <div css={wrapper}>
+        <div css={topText}>
+          <h1>Checkout 3 Items</h1>
+          <p>Enter a address for the delivery</p>
+        </div>
+        <div css={addressBox}>
+          {Object.values(state.inputs).map(
+            ({ id, value, label, type, max, error }) => (
+              <div key={id} css={row}>
+                <Input
+                  value={value}
+                  labelTitle={label}
+                  type={type}
+                  onValueChange={(e) => handleInputChange(id, e.target.value)}
+                  maxLength={max}
+                  customCss={inputCSS(error)}
+                />
+                {error && <span css={errorCss}>{error}</span>}
+              </div>
+            )
+          )}
 
-        <div css={buttonGroup}>
-          <Button
-            label="Proceed"
-            customCss={buttonCss}
-            onClick={handleProceed}
-          />
-          <Button
-            label="Clear"
-            customCss={buttonCss}
-            onClick={handleClearInput}
-          />
+          <div css={buttonGroup}>
+            <Button
+              label="Proceed"
+              customCss={buttonCss}
+              onClick={handleProceed}
+            />
+            <Button
+              label="Clear"
+              customCss={buttonCss}
+              onClick={handleClearInput}
+            />
+          </div>
         </div>
       </div>
-    </div>
+      <Dialog show />
+    </>
   );
 };
 
