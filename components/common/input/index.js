@@ -14,7 +14,15 @@ const input = css`
   background: #ecf0f1;
 `;
 
-const Input = ({ id, labelTitle, type, value, onValueChange, customCss }) => (
+const Input = ({
+  id,
+  labelTitle,
+  type,
+  value,
+  onValueChange,
+  customCss,
+  ...props
+}) => (
   <>
     <label css={label}>{labelTitle}</label>
     <input
@@ -23,6 +31,7 @@ const Input = ({ id, labelTitle, type, value, onValueChange, customCss }) => (
       value={value}
       css={[input, customCss]}
       onChange={onValueChange}
+      {...props}
     />
   </>
 );

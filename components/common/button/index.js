@@ -2,6 +2,7 @@
 import { css } from '@emotion/react';
 
 const btnCSS = css`
+  display: block;
   border: none;
   background-color: #ffd814;
   border-color: #fcd200;
