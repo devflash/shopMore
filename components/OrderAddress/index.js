@@ -1,9 +1,12 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
-import { useReducer } from 'react';
+import { useReducer, useEffect } from 'react';
 import Input from '../common/input';
 import Button from '../common/button';
 import Dialog from '../common/dialog';
+import { server } from '../../config';
+import { useAuth } from '../../context';
+import SavedAddresses from './savedAddresses';
 
 const wrapper = css`
   width: 90%;
@@ -16,6 +19,7 @@ const wrapper = css`
 
 const topText = css`
   text-align: center;
+  position: relative;
   h1 {
     font-size: 18px;
     color: #2c3e50;
@@ -53,6 +57,40 @@ const errorCss = css`
 const inputCSS = (isError) => css`
   border-color: ${isError && '#c0392b'};
   color: ${isError && '#c0392b'};
+`;
+
+const confirmBox = css`
+  p {
+    margin-bottom: 10px;
+  }
+`;
+
+const confirmationButtons = css`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+`;
+
+const savedAddressesBtn = css`
+  position: absolute;
+  background-color: #2c3e50;
+  border: 1px solid #fff;
+  padding: 8px 10px;
+  color: #fff;
+  position: absolute;
+  top: 0;
+  right: 5px;
+  font-size: 12px;
+`;
+
+const confirmButton = css`
+  width: 45%;
+  border-radius: 5px;
+`;
+
+const savedAddressDialogCss = css`
+  padding: 10px;
+  background-color: #ecf0f1;
 `;
 
 const initialState = {
@@ -114,11 +152,19 @@ const initialState = {
       error: '',
     },
   },
+  showAddressDialog: false,
+  showConfirmation: false,
+  userAddresses: [],
 };
-const OrderAddress = () => {
+const OrderAddress = ({ addresses }) => {
+  const { authUser } = useAuth();
   const [state, dispatch] = useReducer((state, newState) => {
     return { ...state, ...newState };
   }, initialState);
+
+  useEffect(() => {
+    dispatch({ userAddresses: addresses.slice() });
+  }, []);
 
   const handleStateChange = (updatedState) => {
     let newState = { ...state };
@@ -160,7 +206,7 @@ const OrderAddress = () => {
           ]);
           isValid = false;
           break;
-        } else if (input.value.length < 10) {
+        } else if (input.value.length < 10 || input.value.charAt(0) !== '0') {
           handleStateChange([
             {
               id: input.id,
@@ -255,17 +301,76 @@ const OrderAddress = () => {
 
   const handleProceed = () => {
     if (handleValidation()) {
-      alert('Valid input');
-    } else {
-      alert('Invalid input');
+      dispatch({ showConfirmation: true });
     }
   };
+
+  const processString = (str) => {
+    return str
+      .split(' ')
+      .map((cur) => {
+        return cur.charAt(0).toUpperCase() + cur.slice(1);
+      })
+      .join(' ');
+  };
+
+  const handleConfirm = async (isSave) => {
+    if (isSave) {
+      if (addresses.length === 5) {
+        //show toast
+        alert('You can save maxiumum of 5 addresses.');
+        return;
+      }
+      const address = {
+        fullName: processString(state.inputs.fullName.value),
+        phoneNumber: state.inputs.phoneNumber.value,
+        postCode: state.inputs.postCode.value,
+        addressLine1: processString(state.inputs.addressLine1.value),
+        addressLine2: processString(state.inputs.addressLine2.value),
+        town: processString(state.inputs.town.value),
+        country: processString(state.inputs.country.value),
+        userId: authUser.uid,
+      };
+      try {
+        const response = await fetch(`${server}/api/address/add`, {
+          method: 'POST',
+          body: JSON.stringify(address),
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const data = await response.json();
+        if (data.msg === 'ADDRESS_ADDED') {
+          alert('Address added');
+          dispatch({
+            userAddresses: [...state.userAddresses, address],
+            showConfirmation: false,
+            inputs: {
+              ...initialState.inputs,
+            },
+          });
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  };
+
+  const toggleAddressDialog = () =>
+    dispatch({ showAddressDialog: !state.showAddressDialog });
+
+  const toggleConfirmDialog = () =>
+    dispatch({ showConfirmation: !state.showConfirmation });
+
   return (
     <>
       <div css={wrapper}>
         <div css={topText}>
           <h1>Checkout 3 Items</h1>
           <p>Enter a address for the delivery</p>
+          <Button
+            label="Saved addresses"
+            customCss={savedAddressesBtn}
+            onClick={toggleAddressDialog}
+          ></Button>
         </div>
         <div css={addressBox}>
           {Object.values(state.inputs).map(
@@ -298,7 +403,40 @@ const OrderAddress = () => {
           </div>
         </div>
       </div>
-      <Dialog show />
+      <Dialog
+        show={state.showAddressDialog}
+        headerText="Select Address"
+        dialogCss={savedAddressDialogCss}
+        onClose={toggleAddressDialog}
+      >
+        <SavedAddresses
+          addresses={state.userAddresses}
+          userId={authUser?.uid}
+          dispatch={dispatch}
+        />
+      </Dialog>
+      <Dialog
+        show={state.showConfirmation}
+        headerText=""
+        maxWidth="300px"
+        onClose={toggleConfirmDialog}
+      >
+        <div css={confirmBox}>
+          <p>Do you want to save this address for future before continuing?</p>
+          <div css={confirmationButtons}>
+            <Button
+              label="Save"
+              customCss={confirmButton}
+              onClick={() => handleConfirm(true)}
+            ></Button>
+            <Button
+              label="No"
+              customCss={confirmButton}
+              onClick={() => handleConfirm(false)}
+            ></Button>
+          </div>
+        </div>
+      </Dialog>
     </>
   );
 };

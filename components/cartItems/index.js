@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { FaMinus, FaPlus } from 'react-icons/fa';
 import Button from '../common/button';
 import { server } from '../../config/index';
-import { useAuth } from '../../context';
+import { useAuth, useOrderContext } from '../../context';
 import Link from 'next/link';
 import { BiArrowBack } from 'react-icons/bi';
 import { useRouter } from 'next/router';
@@ -182,6 +182,7 @@ const initialState = {
 
 const CartItems = ({ items }) => {
   const { authUser } = useAuth();
+  const { cart, updateCart } = useOrderContext();
   const router = useRouter();
   const [state, dispatch] = useReducer((state, newState) => {
     return {
@@ -288,7 +289,20 @@ const CartItems = ({ items }) => {
 
   const handleContinueShopping = (e) => {
     e.preventDefault();
-    router.replace('/');
+    router.replace(`/`);
+  };
+
+  const handleCheckout = (e) => {
+    e.preventDefault();
+    const updatedCart = {
+      cart: {
+        ...cart,
+        items: state.items.slice(),
+        totalCost: state.totalCost,
+      },
+    };
+    updateCart(updatedCart);
+    router.push(`/address/${authUser.uid}`);
   };
 
   return (
@@ -371,7 +385,11 @@ const CartItems = ({ items }) => {
                   <span>Total:</span>
                   <span>{state.totalCost}</span>
                 </div>
-                <Button label="Checkout" customCss={checkoutBtn}></Button>
+                <Button
+                  label="Checkout"
+                  customCss={checkoutBtn}
+                  onClick={handleCheckout}
+                ></Button>
               </div>
             </div>
           </div>
