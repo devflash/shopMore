@@ -1,6 +1,5 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
-import { useReducer } from 'react';
 import { MdRadioButtonChecked, MdRadioButtonUnchecked } from 'react-icons/md';
 import { RiDeleteBin6Line } from 'react-icons/ri';
 import Button from '../../common/button';
@@ -62,7 +61,7 @@ const noAddressWrapper = css`
   align-items: center;
 `;
 
-const SavedAddresses = ({ addresses, userId, dispatch }) => {
+const SavedAddresses = ({ addresses, userId, dispatch, navigateToPreview }) => {
   const handleRemoveAddress = async (id) => {
     const address = {
       userId,
@@ -81,6 +80,22 @@ const SavedAddresses = ({ addresses, userId, dispatch }) => {
     } catch (e) {}
   };
 
+  const changeAddress = (id) => {
+    const newAddresses = addresses.map((address) => {
+      if (address.id === id) address.selected = true;
+      else address.selected = false;
+
+      return address;
+    });
+
+    dispatch({ userAddresses: newAddresses });
+  };
+
+  const handleContinue = () => {
+    const address = addresses.find((cur) => cur.selected);
+    navigateToPreview(address);
+  };
+
   if (addresses.length === 0) {
     return (
       <div css={noAddressWrapper}>
@@ -93,9 +108,17 @@ const SavedAddresses = ({ addresses, userId, dispatch }) => {
       <p>Please select one address for delivery.</p>
       <div css={addressBox}>
         {addresses.map((cur) => (
-          <button key={cur.id} css={address}>
+          <button
+            key={cur.id}
+            css={address}
+            onClick={() => changeAddress(cur.id)}
+          >
             <div>
-              <MdRadioButtonChecked css={radio} />
+              {cur.selected ? (
+                <MdRadioButtonChecked css={radio} />
+              ) : (
+                <MdRadioButtonUnchecked css={radio} />
+              )}
             </div>
             <div css={addressText}>
               <span>
@@ -114,7 +137,7 @@ const SavedAddresses = ({ addresses, userId, dispatch }) => {
           </button>
         ))}
       </div>
-      <Button label="Continue"></Button>
+      <Button label="Continue" onClick={handleContinue}></Button>
     </div>
   );
 };

@@ -5,8 +5,9 @@ import Input from '../common/input';
 import Button from '../common/button';
 import Dialog from '../common/dialog';
 import { server } from '../../config';
-import { useAuth } from '../../context';
+import { useAuth, useOrderContext } from '../../context';
 import SavedAddresses from './savedAddresses';
+import { useRouter } from 'next/router';
 
 const wrapper = css`
   width: 90%;
@@ -158,6 +159,10 @@ const initialState = {
 };
 const OrderAddress = ({ addresses }) => {
   const { authUser } = useAuth();
+  const { updateAddress } = useOrderContext();
+
+  const router = useRouter();
+
   const [state, dispatch] = useReducer((state, newState) => {
     return { ...state, ...newState };
   }, initialState);
@@ -314,23 +319,28 @@ const OrderAddress = ({ addresses }) => {
       .join(' ');
   };
 
+  const navigateToPreview = (address) => {
+    updateAddress(address);
+    router.push('/preview');
+  };
+
   const handleConfirm = async (isSave) => {
+    const address = {
+      fullName: processString(state.inputs.fullName.value),
+      phoneNumber: state.inputs.phoneNumber.value,
+      postCode: state.inputs.postCode.value,
+      addressLine1: processString(state.inputs.addressLine1.value),
+      addressLine2: processString(state.inputs.addressLine2.value),
+      town: processString(state.inputs.town.value),
+      country: processString(state.inputs.country.value),
+      userId: authUser.uid,
+    };
     if (isSave) {
       if (addresses.length === 5) {
         //show toast
         alert('You can save maxiumum of 5 addresses.');
         return;
       }
-      const address = {
-        fullName: processString(state.inputs.fullName.value),
-        phoneNumber: state.inputs.phoneNumber.value,
-        postCode: state.inputs.postCode.value,
-        addressLine1: processString(state.inputs.addressLine1.value),
-        addressLine2: processString(state.inputs.addressLine2.value),
-        town: processString(state.inputs.town.value),
-        country: processString(state.inputs.country.value),
-        userId: authUser.uid,
-      };
       try {
         const response = await fetch(`${server}/api/address/add`, {
           method: 'POST',
@@ -352,6 +362,7 @@ const OrderAddress = ({ addresses }) => {
         console.log(e);
       }
     }
+    navigateToPreview(address);
   };
 
   const toggleAddressDialog = () =>
@@ -413,6 +424,7 @@ const OrderAddress = ({ addresses }) => {
           addresses={state.userAddresses}
           userId={authUser?.uid}
           dispatch={dispatch}
+          navigateToPreview={navigateToPreview}
         />
       </Dialog>
       <Dialog

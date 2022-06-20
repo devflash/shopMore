@@ -10,10 +10,11 @@ const all = async (req, res) => {
       .collection('addresses')
       .get();
 
-    response.forEach((address) => {
+    response.docs.forEach((address, i) => {
       addresses.push({
         id: address.id,
         ...address.data(),
+        selected: i === 0,
       });
     });
     res.status(200).json(addresses);
