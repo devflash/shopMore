@@ -21,16 +21,18 @@ const Input = ({
   value,
   onValueChange,
   customCss,
+  placeholder,
   ...props
 }) => (
   <>
-    <label css={label}>{labelTitle}</label>
+    {labelTitle && <label css={label}>{labelTitle}</label>}
     <input
       id={id}
       type={type || 'text'}
       value={value}
       css={[input, customCss]}
       onChange={onValueChange}
+      placeholder={placeholder || ''}
       {...props}
     />
   </>
