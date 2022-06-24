@@ -3,6 +3,7 @@ import { css } from '@emotion/react';
 import Image from 'next/image';
 import Button from '../common/button';
 import { useOrderContext } from '../../context';
+import { useRouter } from 'next/router';
 
 const wrapper = css`
   width: 90%;
@@ -104,7 +105,7 @@ const summary = css`
 
 const Preview = () => {
   const { cart, address } = useOrderContext();
-
+  const router = useRouter();
   return (
     <div css={wrapper}>
       <h1>Order confirmation</h1>
@@ -167,7 +168,12 @@ const Preview = () => {
           </div>
         </div>
       </div>
-      <Button label="Make payment" />
+      <Button
+        label="Make payment"
+        onClick={() => {
+          router.push('/payment');
+        }}
+      />
     </div>
   );
 };
