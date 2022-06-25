@@ -157,7 +157,7 @@ const Header = () => {
           {authUser && (
             <>
               <li>
-                <Link href="/" type="button" passHref>
+                <Link href={`/orders/${authUser.uid}`} type="button" passHref>
                   <a css={navLink}>Orders</a>
                 </Link>
               </li>
