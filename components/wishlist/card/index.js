@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
 import Image from 'next/image';
-import Button from '../common/button';
+import Button from '../../common/button';
 
 const box = css`
   background-color: #fff;
@@ -42,9 +42,16 @@ const cost = css`
   margin-top: 10px;
 `;
 
-const customCss = css`
-  float: right;
+const wishlistBtn = css`
+  display: flex;
+  justify-content: flex-end;
   margin-top: 10px;
+`;
+const cartBtn = css`
+  margin-right: 5px;
+`;
+const removeBtn = css`
+  background-color: #e74c3c;
 `;
 
 const productTitle = css`
@@ -52,7 +59,7 @@ const productTitle = css`
   font-weight: 800;
 `;
 
-const Card = ({ data }) => (
+const Card = ({ data, handleAddToCart, handleRemove }) => (
   <div css={box}>
     <div css={imageWrapper}>
       <Image src={data.image} alt={data.title} layout="fill" />
@@ -66,11 +73,18 @@ const Card = ({ data }) => (
           {data.stock > 0 ? 'In stock' : 'Out of stock'}
         </span>
       </p>
-      <Button
-        onClick={(e) => {}}
-        customCss={customCss}
-        label="Add to cart"
-      ></Button>
+      <div css={wishlistBtn}>
+        <Button
+          onClick={(e) => handleAddToCart(data)}
+          customCss={cartBtn}
+          label="Add to cart"
+        ></Button>
+        <Button
+          label="Remove"
+          customCss={removeBtn}
+          onClick={() => handleRemove(data.id)}
+        ></Button>
+      </div>
     </div>
   </div>
 );

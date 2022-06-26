@@ -111,7 +111,7 @@ const Product = ({ product }) => {
           ...product,
           userId: authUser.uid,
         };
-        const response = await fetch(`${server}/api/wishlist`, {
+        const response = await fetch(`${server}/api/wishlist/add`, {
           method: 'POST',
           body: JSON.stringify(payload),
           headers: { 'Content-Type': 'application/json' },
