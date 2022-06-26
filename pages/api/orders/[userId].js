@@ -13,7 +13,7 @@ const orders = async (req, res) => {
       return { ...cur.data() };
     });
 
-    res.status(200).json(orders);
+    res.status(200).json({ msg: 'ORDERS_FETCHED', orders });
   } catch (e) {
     res.status(400).json({ e });
   }

@@ -17,7 +17,7 @@ const all = async (req, res) => {
         selected: i === 0,
       });
     });
-    res.status(200).json(addresses);
+    res.status(200).json({ msg: 'ADDRESSES_FETCHED', addresses });
   } catch (e) {
     res.status(400).json({ error: `${e}` });
   }

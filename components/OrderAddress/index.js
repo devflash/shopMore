@@ -157,7 +157,7 @@ const initialState = {
   showConfirmation: false,
   userAddresses: [],
 };
-const OrderAddress = ({ addresses }) => {
+const OrderAddress = ({ userId }) => {
   const { authUser } = useAuth();
   const { updateAddress } = useOrderContext();
 
@@ -168,8 +168,17 @@ const OrderAddress = ({ addresses }) => {
   }, initialState);
 
   useEffect(() => {
-    dispatch({ userAddresses: addresses.slice() });
-  }, []);
+    const fetchData = async () => {
+      try {
+        const data = await fetch(`${server}/api/address/all/${userId}`);
+        const { msg, addresses } = await data.json();
+        if (msg === 'ADDRESSES_FETCHED') {
+          dispatch({ userAddresses: addresses.slice() });
+        }
+      } catch (e) {}
+    };
+    fetchData();
+  }, [userId]);
 
   const handleStateChange = (updatedState) => {
     let newState = { ...state };

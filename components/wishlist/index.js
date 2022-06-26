@@ -100,7 +100,6 @@ const Wishlist = ({ userId }) => {
       if (data.msg === 'PRODUCT_REMOVED') {
         //show success toast;
         const userWishlist = state.wishlist.filter((cur) => cur.id !== id);
-        console.log(userWishlist);
         dispatch({ wishlist: userWishlist.slice() });
       }
     } catch (e) {}
