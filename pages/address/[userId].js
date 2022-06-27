@@ -2,29 +2,19 @@
 import { css } from '@emotion/react';
 import Layout from '../../components/layout';
 import OrderAddress from '../../components/OrderAddress';
-import { server } from '../../config';
-
+import { useRouter } from 'next/router';
 const customLayout = css`
   min-height: calc(100vh - 78px);
   padding: 10px;
 `;
-const Address = ({ addresses = [] }) => (
-  <Layout layoutStyle={customLayout}>
-    <OrderAddress addresses={addresses} />
-  </Layout>
-);
+const Address = () => {
+  const router = useRouter();
+  const { userId } = router.query;
+  return (
+    <Layout layoutStyle={customLayout}>
+      <OrderAddress userId={userId} />
+    </Layout>
+  );
+};
 
 export default Address;
-
-export const getServerSideProps = async (context) => {
-  const {
-    params: { userId },
-  } = context;
-  const data = await fetch(`${server}/api/address/all/${userId}`);
-  const addresses = await data.json();
-  return {
-    props: {
-      addresses,
-    },
-  };
-};

@@ -1,4 +1,4 @@
-import { firestore } from '../../../utils/firebase';
+import { firestore } from '../../../../utils/firebase';
 const wishlist = async (req, res) => {
   const wishlist = req.body;
   try {

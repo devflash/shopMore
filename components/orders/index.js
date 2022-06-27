@@ -113,7 +113,7 @@ const initialState = {
   orders: [],
 };
 
-const Orders = ({ orders = [] }) => {
+const Orders = ({ userId }) => {
   const { authUser } = useAuth();
   const [state, dispatch] = useReducer((state, newState) => {
     return {
@@ -123,8 +123,23 @@ const Orders = ({ orders = [] }) => {
   }, initialState);
 
   useEffect(() => {
-    dispatch({ orders });
-  }, [orders]);
+    const fetchData = async () => {
+      //start loader
+      try {
+        const response = await fetch(`${server}/api/orders/${userId}`, {
+          method: 'GET',
+        });
+        const data = await response.json();
+        if (data.msg === 'ORDERS_FETCHED') {
+          dispatch({ orders: data.orders.slice() });
+        }
+      } catch (e) {
+        console.log(e);
+      }
+      //stop loader
+    };
+    fetchData();
+  }, []);
 
   const cancelOrder = async (orderRef) => {
     try {

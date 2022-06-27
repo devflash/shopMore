@@ -2,7 +2,7 @@
 import { css } from '@emotion/react';
 import Layout from '../../components/layout';
 import OrdersComp from '../../components/orders';
-import { server } from '../../config';
+import { useRouter } from 'next/router';
 
 const layoutStyle = css`
   min-height: calc(100vh - 62px);
@@ -11,27 +11,14 @@ const layoutStyle = css`
   height: auto;
 `;
 
-const Orders = ({ orders }) => (
-  <Layout layoutStyle={layoutStyle}>
-    <OrdersComp orders={orders} />
-  </Layout>
-);
-
-export const getServerSideProps = async (context) => {
-  const {
-    params: { userId },
-  } = context;
-  const response = await fetch(`${server}/api/orders/${userId}`, {
-    method: 'GET',
-  });
-
-  const orders = await response.json();
-
-  return {
-    props: {
-      orders,
-    },
-  };
+const Orders = () => {
+  const router = useRouter();
+  const { userId } = router.query;
+  return (
+    <Layout layoutStyle={layoutStyle}>
+      <OrdersComp userId={userId} />
+    </Layout>
+  );
 };
 
 export default Orders;

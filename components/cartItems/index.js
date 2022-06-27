@@ -23,6 +23,7 @@ const cartMain = css`
 
 const flex = css`
   display: flex;
+  align-items: center;
 `;
 
 const rightSection = css`
@@ -86,13 +87,14 @@ const btnCss = css`
   padding: 10px 5px;
 `;
 
-const mgRight5 = css`
-  margin-right: 5px;
+const mgBottom5 = css`
+  margin-bottom: 5px;
 `;
 
 const productSection = css`
   display: flex;
   justify-content: space-between;
+  align-items: center;
   @media screen and (min-width: 600px) {
     flex: 2 1 auto;
     margin-right: 20px;
@@ -176,11 +178,15 @@ const noCartBox = css`
   }
 `;
 
+const mgRight5 = css`
+  margin-right: 5px;
+`;
+
 const initialState = {
   totalCost: 0,
 };
 
-const CartItems = ({ items }) => {
+const CartItems = ({ userId }) => {
   const { authUser } = useAuth();
   const { cart, updateCart } = useOrderContext();
   const router = useRouter();
@@ -200,9 +206,21 @@ const CartItems = ({ items }) => {
   };
 
   useEffect(() => {
-    let totalCost = calculateTotalCost(items);
-    dispatch({ items, totalCost });
-  }, []);
+    const fetchData = async () => {
+      try {
+        //start loader
+        const response = await fetch(`${server}/api/cart/${userId}`, {
+          method: 'GET',
+        });
+        const { msg, items } = await response.json();
+        if (msg === 'CART_FETCHED') {
+          let totalCost = calculateTotalCost(items);
+          dispatch({ items, totalCost });
+        }
+      } catch (e) {}
+    };
+    fetchData();
+  }, [userId]);
 
   const handleWishList = async (item) => {
     delete item.count;
@@ -357,7 +375,7 @@ const CartItems = ({ items }) => {
                       <div css={cartbtn}>
                         <Button
                           label="Add to wishlist"
-                          customCss={[btnCss, mgRight5]}
+                          customCss={[btnCss, mgBottom5]}
                           onClick={() => handleWishList(item)}
                         />
                         <Button
