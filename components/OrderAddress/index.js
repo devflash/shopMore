@@ -11,6 +11,8 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import { getErrorMessage } from '../../utils/handleError';
 import Toast from '../common/toast';
+import Loader from '../common/loader';
+import useLoader from '../../hooks/useLoader';
 
 const wrapper = css`
   width: 90%;
@@ -165,6 +167,7 @@ const initialState = {
 const OrderAddress = ({ userId }) => {
   const { authUser } = useAuth();
   const { updateAddress } = useOrderContext();
+  const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
 
   const router = useRouter();
 
@@ -175,6 +178,8 @@ const OrderAddress = ({ userId }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading({ isLoading: true, isBackdrop: false });
+
         const { data } = await axios.get(`${server}/api/address/all/${userId}`);
         const { msg, addresses } = data;
         if (msg === 'ADDRESSES_FETCHED') {
@@ -185,6 +190,7 @@ const OrderAddress = ({ userId }) => {
         const serviceError = getErrorMessage(error_code);
         dispatch({ serviceError });
       }
+      setLoading({ isLoading: false, isBackdrop: false });
     };
     userId && fetchData();
   }, [userId]);
@@ -360,6 +366,8 @@ const OrderAddress = ({ userId }) => {
         return;
       }
       try {
+        setLoading({ isLoading: true, isBackdrop: true });
+
         const { data } = await axios.post(`${server}/api/address/add`, address);
         const { msg } = data;
 
@@ -378,6 +386,7 @@ const OrderAddress = ({ userId }) => {
         const serviceError = getErrorMessage(error_code);
         dispatch({ serviceError });
       }
+      setLoading({ isLoading: false, isBackdrop: false });
     }
     setTimeout(() => {
       navigateToPreview(address);
@@ -398,6 +407,8 @@ const OrderAddress = ({ userId }) => {
         callback={() => dispatch({ serviceError: '', success: '' })}
         isError={state.serviceError ? true : false}
       />
+      <Loader isLoading={isLoading} isBackdrop={isBackdrop} />
+
       <div css={wrapper}>
         <div css={topText}>
           <h1>Checkout 3 Items</h1>
@@ -450,6 +461,7 @@ const OrderAddress = ({ userId }) => {
           userId={authUser?.uid}
           dispatch={dispatch}
           navigateToPreview={navigateToPreview}
+          setLoading={setLoading}
         />
       </Dialog>
       <Dialog

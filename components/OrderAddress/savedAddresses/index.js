@@ -62,13 +62,21 @@ const noAddressWrapper = css`
   align-items: center;
 `;
 
-const SavedAddresses = ({ addresses, userId, dispatch, navigateToPreview }) => {
+const SavedAddresses = ({
+  addresses,
+  userId,
+  dispatch,
+  navigateToPreview,
+  setLoading,
+}) => {
   const handleRemoveAddress = async (id) => {
     const address = {
       userId,
       id,
     };
     try {
+      setLoading({ isLoading: true, isBackdrop: true });
+
       const { data } = await axios.delete(`${server}/api/address/remove`, {
         data: address,
       });
@@ -85,6 +93,7 @@ const SavedAddresses = ({ addresses, userId, dispatch, navigateToPreview }) => {
       const serviceError = getErrorMessage(error_code);
       dispatch({ serviceError });
     }
+    setLoading({ isLoading: false, isBackdrop: false });
   };
 
   const changeAddress = (id) => {

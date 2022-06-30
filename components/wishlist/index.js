@@ -9,6 +9,8 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import { getErrorMessage } from '../../utils/handleError';
 import Toast from '../common/toast';
+import Loader from '../common/loader';
+import useLoader from '../../hooks/useLoader';
 
 const wrapper = css`
   width: 90%;
@@ -52,9 +54,13 @@ const Wishlist = ({ userId }) => {
     };
   }, initialState);
 
+  const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
+
   useEffect(() => {
     const fetchData = async () => {
       //start loader
+      setLoading({ isLoading: true, isBackdrop: false });
+
       try {
         const { data } = await axios.get(`${server}/api/wishlist/${userId}`);
         const { msg } = data;
@@ -68,12 +74,15 @@ const Wishlist = ({ userId }) => {
         dispatch({ serviceError });
         //show error toast
       }
+      setLoading({ isLoading: false, isBackdrop: false });
     };
     userId && fetchData();
   }, [userId]);
 
   const handleAddToCart = async (product) => {
     try {
+      setLoading({ isLoading: true, isBackdrop: true });
+
       const payload = {
         ...product,
       };
@@ -88,10 +97,13 @@ const Wishlist = ({ userId }) => {
       const serviceError = getErrorMessage(error_code);
       dispatch({ serviceError });
     }
+    setLoading({ isLoading: false, isBackdrop: false });
   };
 
   const handleRemove = async (id) => {
     try {
+      setLoading({ isLoading: true, isBackdrop: true });
+
       const { data } = await axios.delete(
         `${server}/api/wishlist/remove/${authUser.uid}/${id}`
       );
@@ -109,6 +121,7 @@ const Wishlist = ({ userId }) => {
       const serviceError = getErrorMessage(error_code);
       dispatch({ serviceError });
     }
+    setLoading({ isLoading: false, isBackdrop: false });
   };
 
   return (
@@ -119,6 +132,8 @@ const Wishlist = ({ userId }) => {
         callback={() => dispatch({ serviceError: '', success: '' })}
         isError={state.serviceError ? true : false}
       />
+      <Loader isLoading={isLoading} isBackdrop={isBackdrop} />
+
       <div css={wrapper}>
         {authUser && (
           <h1 css={userName}>{`${authUser.displayName}'s wishlist`}</h1>

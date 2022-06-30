@@ -115,7 +115,6 @@ const Header = () => {
     signOutUser().then(() => router.push('/signin'));
   };
 
-  console.log(authUser);
   return (
     <header css={header}>
       <div css={navHeader}>

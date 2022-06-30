@@ -5,11 +5,12 @@ import { useAuth } from '../../context';
 import { useRouter } from 'next/router';
 import { server } from '../../config';
 import Toast from '../common/toast';
-import { useState } from 'react';
-import { errors } from '../../config/strings';
 import axios from 'axios';
 import { getErrorMessage } from '../../utils/handleError';
 import { useReducer } from 'react';
+import Loader from '../common/loader';
+import useLoader from '../../hooks/useLoader';
+import Currency from '../common/currency';
 
 const wrapper = css`
   padding-top: 50px;
@@ -103,6 +104,11 @@ const greyback = css`
   color: #fff;
 `;
 
+const cost = css`
+  display: flex;
+  align-items: center;
+`;
+
 const initialState = {
   serviceError: null,
   success: null,
@@ -110,6 +116,8 @@ const initialState = {
 const Product = ({ product }) => {
   const { authUser } = useAuth();
   const router = useRouter();
+  const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
+
   const [state, dispatch] = useReducer((state, newState) => {
     return {
       ...state,
@@ -119,6 +127,7 @@ const Product = ({ product }) => {
 
   const handleWishlist = async () => {
     if (authUser) {
+      setLoading({ isLoading: true, isBackdrop: true });
       try {
         const payload = {
           ...product,
@@ -134,17 +143,19 @@ const Product = ({ product }) => {
           dispatch({ success: 'Product has been added to your wishlist' });
         }
       } catch (error) {
-        const error_code = e?.response?.data;
+        const error_code = error?.response?.data;
         const serviceError = getErrorMessage(error_code);
         dispatch({ serviceError });
       }
     } else {
       router.push('/signin');
     }
+    setLoading({ isLoading: false, isBackdrop: false });
   };
 
   const handleAddToCart = async () => {
     if (authUser) {
+      setLoading({ isLoading: true, isBackdrop: true });
       try {
         const payload = {
           ...product,
@@ -163,6 +174,7 @@ const Product = ({ product }) => {
     } else {
       router.push('/signin');
     }
+    setLoading({ isLoading: false, isBackdrop: false });
   };
 
   return (
@@ -173,6 +185,7 @@ const Product = ({ product }) => {
         callback={() => dispatch({ serviceError: '', success: '' })}
         isError={state.serviceError ? true : false}
       />
+      <Loader isLoading={isLoading} isBackdrop={isBackdrop} />
       <div css={wrapper}>
         <div css={imageWrapper}>
           <Image src={product.image} alt={product.title} layout="fill" />
@@ -181,7 +194,10 @@ const Product = ({ product }) => {
           <h2>{product.title}</h2>
           <div css={productinfo}>
             <div css={row}>
-              <span>Price: {product.price}</span>
+              <span css={cost}>
+                Price: <Currency />
+                {product.price}
+              </span>
               <span>Rating: {product.rating}</span>
             </div>
             <div css={row}>
