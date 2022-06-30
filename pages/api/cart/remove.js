@@ -2,7 +2,7 @@ import { firestore } from '../../../utils/firebase';
 
 const remove = async (req, res) => {
   const cart = req.body;
-
+  console.log(cart.itemId);
   try {
     const item = await firestore
       .collection('users')
@@ -15,7 +15,7 @@ const remove = async (req, res) => {
     });
     res.status(200).json({ msg: 'PRODUCT_DELETED_CART' });
   } catch (e) {
-    throw e;
+    res.status(400).send(`${e.message}`);
   }
 };
 

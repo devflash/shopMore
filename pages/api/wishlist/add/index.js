@@ -20,7 +20,7 @@ const wishlist = async (req, res) => {
     res.status(200).json({ msg: 'WISHLIST_SUCCESS' });
   } catch (error) {
     console.log(error);
-    res.status(400).json({ error: `${error}` });
+    res.status(400).send(`${error.message}`);
   }
 };
 

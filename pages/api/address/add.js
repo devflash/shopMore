@@ -10,7 +10,7 @@ const add = async (req, res) => {
       .add(address);
     res.status(200).json({ msg: 'ADDRESS_ADDED' });
   } catch (e) {
-    res.status(400).json({ error: `${e}` });
+    res.status(400).send(`${e.message}`);
   }
 };
 

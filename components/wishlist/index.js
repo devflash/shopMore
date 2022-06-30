@@ -6,6 +6,9 @@ import Card from './card';
 import { server } from '../../config';
 import Button from '../common/button';
 import { useRouter } from 'next/router';
+import axios from 'axios';
+import { getErrorMessage } from '../../utils/handleError';
+import Toast from '../common/toast';
 
 const wrapper = css`
   width: 90%;
@@ -35,6 +38,7 @@ const noWishlistBox = css`
 const initialState = {
   wishlist: [],
   serviceError: null,
+  success: null,
 };
 
 const Wishlist = ({ userId }) => {
@@ -52,16 +56,16 @@ const Wishlist = ({ userId }) => {
     const fetchData = async () => {
       //start loader
       try {
-        const response = await fetch(`${server}/api/wishlist/${userId}`, {
-          method: 'GET',
-        });
-        const data = await response.json();
-        if (data.msg === 'WISHLIST_FETCHED') {
+        const { data } = await axios.get(`${server}/api/wishlist/${userId}`);
+        const { msg } = data;
+        if (msg === 'WISHLIST_FETCHED') {
           dispatch({ wishlist: data.userWishlist.slice() });
         }
         //stop loader
       } catch (e) {
-        console.log(e);
+        const error_code = e?.response?.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
         //show error toast
       }
     };
@@ -73,40 +77,48 @@ const Wishlist = ({ userId }) => {
       const payload = {
         ...product,
       };
-      const response = await fetch(`${server}/api/cart/add`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json();
-      if (data.msg === 'PRODUCT_ADDED_CART') {
-        alert('Product added to cart');
+      const { data } = await axios.post(`${server}/api/cart/add`, payload);
+      const { msg } = data;
+      if (msg === 'PRODUCT_ADDED_CART') {
+        dispatch({ success: 'Product has been added to your cart' });
         //show success toast
       }
     } catch (e) {
-      console.log(e);
+      const error_code = e?.response?.data;
+      const serviceError = getErrorMessage(error_code);
+      dispatch({ serviceError });
     }
   };
 
   const handleRemove = async (id) => {
     try {
-      const response = await fetch(
-        `${server}/api/wishlist/remove/${userId}/${id}`,
-        {
-          method: 'DELETE',
-        }
+      const { data } = await axios.delete(
+        `${server}/api/wishlist/remove/${authUser.uid}/${id}`
       );
-      const data = await response.json();
-      if (data.msg === 'PRODUCT_REMOVED') {
+      const { msg } = data;
+      if (msg === 'PRODUCT_REMOVED') {
         //show success toast;
         const userWishlist = state.wishlist.filter((cur) => cur.id !== id);
-        dispatch({ wishlist: userWishlist.slice() });
+        dispatch({
+          wishlist: userWishlist.slice(),
+          success: 'Product has been removed from your wishlist',
+        });
       }
-    } catch (e) {}
+    } catch (e) {
+      const error_code = e?.response?.data;
+      const serviceError = getErrorMessage(error_code);
+      dispatch({ serviceError });
+    }
   };
 
   return (
     <>
+      <Toast
+        open={state.serviceError || state.success}
+        text={state.serviceError || state.success}
+        callback={() => dispatch({ serviceError: '', success: '' })}
+        isError={state.serviceError ? true : false}
+      />
       <div css={wrapper}>
         {authUser && (
           <h1 css={userName}>{`${authUser.displayName}'s wishlist`}</h1>

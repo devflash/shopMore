@@ -13,7 +13,7 @@ const remove = async (req, res) => {
     addressRef.ref.delete();
     res.status(200).json({ msg: 'ADDRESS_REMOVED' });
   } catch (e) {
-    throw e;
+    res.status(400).send(`${e.message}`);
   }
 };
 

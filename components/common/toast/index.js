@@ -9,9 +9,13 @@ const box = (isError) => css`
   left: 50%;
   transform: translateX(-50%) scale(0);
   padding: 10px;
-  border-radius: 10px;
-  top: 10%;
+  border-radius: 5px;
+  top: 80px;
   transition: all 1s ease-in;
+  min-width: 250px;
+  width: auto;
+  text-align: center;
+  z-index: 999;
 `;
 
 const show = css`
