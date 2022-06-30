@@ -32,7 +32,7 @@ const add = async (req, res) => {
 
     res.status(200).json({ msg: 'PRODUCT_ADDED_CART' });
   } catch (e) {
-    res.status(400).json({ error: `${e}` });
+    res.status(400).send(`${e.message}`);
   }
 };
 

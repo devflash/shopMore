@@ -4,12 +4,17 @@ const all = async (req, res) => {
   const { userId } = req.query;
   const addresses = [];
   try {
-    const response = await firestore
+    const userCollection = await firestore
       .collection('users')
       .doc(userId)
-      .collection('addresses')
       .get();
+    // .collection('addresses')
+    // .get();
 
+    if (!userCollection.exists) {
+      throw new Error('INVALID_USER');
+    }
+    const response = await userCollection.ref.collection('addresses').get();
     response.docs.forEach((address, i) => {
       addresses.push({
         id: address.id,
@@ -19,7 +24,7 @@ const all = async (req, res) => {
     });
     res.status(200).json({ msg: 'ADDRESSES_FETCHED', addresses });
   } catch (e) {
-    res.status(400).json({ error: `${e}` });
+    res.status(400).send(`${e.message}`);
   }
 };
 

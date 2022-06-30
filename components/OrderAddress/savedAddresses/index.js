@@ -4,6 +4,7 @@ import { MdRadioButtonChecked, MdRadioButtonUnchecked } from 'react-icons/md';
 import { RiDeleteBin6Line } from 'react-icons/ri';
 import Button from '../../common/button';
 import { server } from '../../../config';
+import axios from 'axios';
 
 const wrapper = css`
   p {
@@ -68,16 +69,22 @@ const SavedAddresses = ({ addresses, userId, dispatch, navigateToPreview }) => {
       id,
     };
     try {
-      const response = await fetch(`${server}/api/address/remove`, {
-        method: 'DELETE',
-        body: JSON.stringify(address),
-        headers: { 'Content-Type': 'application/json' },
+      const { data } = await axios.delete(`${server}/api/address/remove`, {
+        data: address,
       });
-      const data = await response.json();
-      if (data.msg === 'ADDRESS_REMOVED') {
-        dispatch({ userAddresses: addresses.filter((cur) => cur.id !== id) });
+      const { msg } = data;
+
+      if (msg === 'ADDRESS_REMOVED') {
+        dispatch({
+          userAddresses: addresses.filter((cur) => cur.id !== id),
+          success: 'Address has been removed',
+        });
       }
-    } catch (e) {}
+    } catch (e) {
+      const error_code = e?.response?.data;
+      const serviceError = getErrorMessage(error_code);
+      dispatch({ serviceError });
+    }
   };
 
   const changeAddress = (id) => {

@@ -8,6 +8,9 @@ import { server } from '../../config';
 import { useAuth, useOrderContext } from '../../context';
 import SavedAddresses from './savedAddresses';
 import { useRouter } from 'next/router';
+import axios from 'axios';
+import { getErrorMessage } from '../../utils/handleError';
+import Toast from '../common/toast';
 
 const wrapper = css`
   width: 90%;
@@ -156,6 +159,8 @@ const initialState = {
   showAddressDialog: false,
   showConfirmation: false,
   userAddresses: [],
+  serviceError: null,
+  success: null,
 };
 const OrderAddress = ({ userId }) => {
   const { authUser } = useAuth();
@@ -170,14 +175,18 @@ const OrderAddress = ({ userId }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetch(`${server}/api/address/all/${userId}`);
-        const { msg, addresses } = await data.json();
+        const { data } = await axios.get(`${server}/api/address/all/${userId}`);
+        const { msg, addresses } = data;
         if (msg === 'ADDRESSES_FETCHED') {
           dispatch({ userAddresses: addresses.slice() });
         }
-      } catch (e) {}
+      } catch (e) {
+        const error_code = e?.response?.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
+      }
     };
-    fetchData();
+    userId && fetchData();
   }, [userId]);
 
   const handleStateChange = (updatedState) => {
@@ -345,33 +354,34 @@ const OrderAddress = ({ userId }) => {
       userId: authUser.uid,
     };
     if (isSave) {
-      if (addresses.length === 5) {
+      if (state.userAddresses.length === 5) {
         //show toast
-        alert('You can save maxiumum of 5 addresses.');
+        dispatch({ serviceError: 'You can save maximum of 5 addresses' });
         return;
       }
       try {
-        const response = await fetch(`${server}/api/address/add`, {
-          method: 'POST',
-          body: JSON.stringify(address),
-          headers: { 'Content-Type': 'application/json' },
-        });
-        const data = await response.json();
-        if (data.msg === 'ADDRESS_ADDED') {
-          alert('Address added');
+        const { data } = await axios.post(`${server}/api/address/add`, address);
+        const { msg } = data;
+
+        if (msg === 'ADDRESS_ADDED') {
           dispatch({
             userAddresses: [...state.userAddresses, address],
             showConfirmation: false,
+            success: 'New address has been added',
             inputs: {
               ...initialState.inputs,
             },
           });
         }
       } catch (e) {
-        console.log(e);
+        const error_code = e?.response?.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
       }
     }
-    navigateToPreview(address);
+    setTimeout(() => {
+      navigateToPreview(address);
+    }, 5000);
   };
 
   const toggleAddressDialog = () =>
@@ -382,6 +392,12 @@ const OrderAddress = ({ userId }) => {
 
   return (
     <>
+      <Toast
+        open={state.serviceError || state.success}
+        text={state.serviceError || state.success}
+        callback={() => dispatch({ serviceError: '', success: '' })}
+        isError={state.serviceError ? true : false}
+      />
       <div css={wrapper}>
         <div css={topText}>
           <h1>Checkout 3 Items</h1>

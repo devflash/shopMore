@@ -5,6 +5,10 @@ import Button from '../common/button';
 import { useAuth } from '../../context';
 import { server } from '../../config';
 import { useReducer, useEffect } from 'react';
+import axios from 'axios';
+import { getErrorMessage } from '../../utils/handleError';
+import Toast from '../common/toast';
+import { useRouter } from 'next/router';
 
 const wrapper = css`
   width: 90%;
@@ -109,12 +113,21 @@ const rightColumn = css`
   }
 `;
 
+const noOrderBox = css`
+  text-align: center;
+  h3 {
+    margin-bottom: 20px;
+  }
+`;
+
 const initialState = {
   orders: [],
 };
 
 const Orders = ({ userId }) => {
   const { authUser } = useAuth();
+  const router = useRouter();
+
   const [state, dispatch] = useReducer((state, newState) => {
     return {
       ...state,
@@ -126,40 +139,43 @@ const Orders = ({ userId }) => {
     const fetchData = async () => {
       //start loader
       try {
-        const response = await fetch(`${server}/api/orders/${userId}`, {
-          method: 'GET',
-        });
-        const data = await response.json();
-        if (data.msg === 'ORDERS_FETCHED') {
+        const { data } = await axios.get(`${server}/api/orders/${userId}`);
+        const { msg } = data;
+
+        if (msg === 'ORDERS_FETCHED') {
           dispatch({ orders: data.orders.slice() });
         }
       } catch (e) {
-        console.log(e);
+        const error_code = e?.response?.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
       }
       //stop loader
     };
-    fetchData();
-  }, []);
+    userId && fetchData();
+  }, [userId]);
 
   const cancelOrder = async (orderRef) => {
     try {
-      const response = await fetch(
-        `${server}/api/order/cancel/${authUser.uid}/${orderRef}`,
-        {
-          method: 'DELETE',
-        }
+      const { data } = await axios.delete(
+        `${server}/api/order/cancel/${authUser.uid}/${orderRef}`
       );
-      const data = await response.json();
-      if (data.msg === 'ORDER_CANCELLED') {
+      const { msg } = data;
+      if (msg === 'ORDER_CANCELLED') {
         //show success toast
         const newOrders = state.orders.filter(
           (cur) => cur.orderRef !== orderRef
         );
-        debugger;
-        dispatch({ orders: newOrders.slice() });
-        alert('Order cencelled');
+        dispatch({
+          orders: newOrders.slice(),
+          success: 'Order has been cancelled',
+        });
       }
-    } catch (e) {}
+    } catch (e) {
+      const error_code = e?.response?.data;
+      const serviceError = getErrorMessage(error_code);
+      dispatch({ serviceError });
+    }
   };
 
   const handleBuyAgain = async (item) => {
@@ -167,90 +183,112 @@ const Orders = ({ userId }) => {
       ...item,
     };
     try {
-      const response = await fetch(`${server}/api/cart/add`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json();
-      if (data.msg === 'PRODUCT_ADDED_CART') {
-        // alert('Product added to cart');
+      const { data } = await axios.post(`${server}/api/cart/add`, payload);
+      const { msg } = data;
+      if (msg === 'PRODUCT_ADDED_CART') {
+        dispatch({ success: 'Product has been added to the cart' });
       }
-    } catch (e) {}
+    } catch (e) {
+      const error_code = e?.response?.data;
+      const serviceError = getErrorMessage(error_code);
+      dispatch({ serviceError });
+    }
+  };
+
+  const handleContinueShopping = (e) => {
+    e.preventDefault();
+    router.replace(`/`);
   };
 
   return (
-    <div css={wrapper}>
-      <h1>Track your orders</h1>
-      <div css={ordersBox}>
-        {state.orders.length > 0 &&
-          state.orders.map((cur) => (
-            <>
-              <div key={cur.orderRef} css={order}>
-                <div css={orderTop}>
-                  <div>
-                    <p>Order reference</p>
-                    <p>{cur.orderRef}</p>
+    <>
+      <Toast
+        open={state.serviceError || state.success}
+        text={state.serviceError || state.success}
+        callback={() => dispatch({ serviceError: '', success: '' })}
+        isError={state.serviceError ? true : false}
+      />
+      <div css={wrapper}>
+        <h1>Track your orders</h1>
+        <div css={ordersBox}>
+          {state.orders.length === 0 && (
+            <div css={noOrderBox}>
+              <h3>You have no previous orders to show</h3>
+              <Button
+                label="Continue shopping"
+                onClick={handleContinueShopping}
+              ></Button>
+            </div>
+          )}
+          {state.orders.length > 0 &&
+            state.orders.map((cur) => (
+              <>
+                <div key={cur.orderRef} css={order}>
+                  <div css={orderTop}>
+                    <div>
+                      <p>Order reference</p>
+                      <p>{cur.orderRef}</p>
+                    </div>
+                    {new Date(cur.deliveryDate) > new Date(cur.orderDate) && (
+                      <Button
+                        label="Cancel Order"
+                        customCss={cancelBtn}
+                        onClick={() => cancelOrder(cur.orderRef)}
+                      />
+                    )}
                   </div>
-                  {new Date(cur.deliveryDate) > new Date(cur.orderDate) && (
-                    <Button
-                      label="Cancel Order"
-                      customCss={cancelBtn}
-                      onClick={() => cancelOrder(cur.orderRef)}
-                    />
-                  )}
-                </div>
-                {cur.items.length > 0 &&
-                  cur.items.map((item) => (
-                    <div key={item.id} css={orderBody}>
-                      <div css={imageWrapper}>
-                        <Image
-                          src={item.image}
-                          alt={item.title}
-                          layout="fill"
-                        />
+                  {cur.items.length > 0 &&
+                    cur.items.map((item) => (
+                      <div key={item.id} css={orderBody}>
+                        <div css={imageWrapper}>
+                          <Image
+                            src={item.image}
+                            alt={item.title}
+                            layout="fill"
+                          />
+                        </div>
+                        <div css={productDetails}>
+                          <p>{item.title}</p>
+                          <Button
+                            label="Buy again"
+                            onClick={() => handleBuyAgain(item)}
+                            customCss={buyBtn}
+                          ></Button>
+                        </div>
                       </div>
-                      <div css={productDetails}>
-                        <p>{item.title}</p>
-                        <Button
-                          label="Buy again"
-                          onClick={() => handleBuyAgain(item)}
-                          customCss={buyBtn}
-                        ></Button>
+                    ))}
+                  <div css={orderBottom}>
+                    <div css={row}>
+                      <div css={leftColumn}>
+                        <p>Customer Name</p>
+                        <p>{cur?.address?.fullName}</p>
+                      </div>
+                      <div css={rightColumn}>
+                        <p>Order placed</p>
+                        <p>{cur.orderDate}</p>
                       </div>
                     </div>
-                  ))}
-                <div css={orderBottom}>
-                  <div css={row}>
-                    <div css={leftColumn}>
-                      <p>Customer Name</p>
-                      <p>{cur?.address?.fullName}</p>
-                    </div>
-                    <div css={rightColumn}>
-                      <p>Order placed</p>
-                      <p>{cur.orderDate}</p>
-                    </div>
-                  </div>
-                  <div css={row}>
-                    <div css={leftColumn}>
-                      <p>Payment Status</p>
-                      <p>{cur.paymentStatus}</p>
-                    </div>
-                    <div css={rightColumn}>
-                      <p>Order Status</p>
-                      <p>
-                        {new Date(cur.deliveryDate) > new Date(cur.orderDate)
-                          ? 'In-progress'
-                          : 'Delivered'}
-                      </p>
+                    <div css={row}>
+                      <div css={leftColumn}>
+                        <p>Payment Status</p>
+                        <p>{cur.paymentStatus}</p>
+                      </div>
+                      <div css={rightColumn}>
+                        <p>Order Status</p>
+                        <p>
+                          {new Date(cur.deliveryDate) > new Date(cur.orderDate)
+                            ? 'In-progress'
+                            : 'Delivered'}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </>
-          ))}
+              </>
+            ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

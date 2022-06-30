@@ -61,6 +61,7 @@ const initialState = {
   emailError: null,
   passwordError: null,
   serviceError: null,
+  success: null,
 };
 
 const SignUp = () => {
@@ -121,12 +122,12 @@ const SignUp = () => {
           lastName: state.lastName,
         };
         await firestore.collection('users').doc(user.user.id).set(payload);
-        alert('Account created successfully');
         dispatch({
           firstName: '',
           lastName: '',
           email: '',
           password: '',
+          success: 'Your account has been created successfuly',
         });
         router.push(' /');
       } catch (e) {
@@ -138,9 +139,12 @@ const SignUp = () => {
   };
   return (
     <div css={flex}>
-      {state.serviceError && (
-        <Toast error={state.serviceError} isError={true} />
-      )}
+      <Toast
+        open={state.serviceError || state.success}
+        text={state.serviceError || state.success}
+        callback={() => dispatch({ serviceError: '', success: '' })}
+        isError={state.serviceError ? true : false}
+      />
       <div css={wrapper}>
         <h1>ShopMore</h1>
         <div css={container}>

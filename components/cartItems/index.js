@@ -9,6 +9,10 @@ import { useAuth, useOrderContext } from '../../context';
 import Link from 'next/link';
 import { BiArrowBack } from 'react-icons/bi';
 import { useRouter } from 'next/router';
+import axios from 'axios';
+import { getErrorMessage } from '../../utils/handleError';
+import Toast from '../common/toast';
+
 const wrapper = css`
   width: 90%;
   margin: 20px auto 0;
@@ -184,6 +188,8 @@ const mgRight5 = css`
 
 const initialState = {
   totalCost: 0,
+  serviceError: null,
+  success: null,
 };
 
 const CartItems = ({ userId }) => {
@@ -209,17 +215,19 @@ const CartItems = ({ userId }) => {
     const fetchData = async () => {
       try {
         //start loader
-        const response = await fetch(`${server}/api/cart/${userId}`, {
-          method: 'GET',
-        });
-        const { msg, items } = await response.json();
+        const { data } = await axios.get(`${server}/api/cart/${userId}`);
+        const { msg, items } = data;
         if (msg === 'CART_FETCHED') {
           let totalCost = calculateTotalCost(items);
           dispatch({ items, totalCost });
         }
-      } catch (e) {}
+      } catch (e) {
+        const error_code = e.response.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
+      }
     };
-    fetchData();
+    userId && fetchData();
   }, [userId]);
 
   const handleWishList = async (item) => {
@@ -227,21 +235,17 @@ const CartItems = ({ userId }) => {
     const payload = {
       ...item,
     };
+
     try {
-      const response = await fetch(`${server}/api/wishlist`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json();
-      if (data.msg === 'success') {
-        console.log('Added to wishlist');
-      }
-      if (data.error) {
-        console.log(data.error);
+      const { data } = await axios.post(`${server}/api/wishlist/add`, payload);
+      const { msg } = data;
+      if (msg === 'WISHLIST_SUCCESS') {
+        dispatch({ success: 'Product has been added to your wishlist' });
       }
     } catch (e) {
-      console.log(e);
+      const error_code = e?.response?.data;
+      const serviceError = getErrorMessage(error_code);
+      dispatch({ serviceError });
     }
   };
 
@@ -254,18 +258,24 @@ const CartItems = ({ userId }) => {
         itemId,
         userId: authUser.uid,
       };
-      console.log(payload);
-      const response = await fetch(`${server}/api/cart/remove`, {
-        method: 'DELETE',
-        body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json();
-      if (data.msg === 'PRODUCT_DELETED_CART') {
-        alert('Product is removed from the cart');
-        const items = state.items.filter((cur) => cur.id !== itemId);
-        let totalCost = calculateTotalCost(items);
-        dispatch({ items, totalCost });
+      try {
+        const { data } = await axios.delete(`${server}/api/cart/remove`, {
+          data: payload,
+        });
+        const { msg } = data;
+        if (msg === 'PRODUCT_DELETED_CART') {
+          const items = state.items.filter((cur) => cur.id !== itemId);
+          let totalCost = calculateTotalCost(items);
+          dispatch({
+            success: 'Product removed from the cart',
+            items,
+            totalCost,
+          });
+        }
+      } catch (e) {
+        const error_code = e?.response?.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
       }
     }
   };
@@ -277,19 +287,20 @@ const CartItems = ({ userId }) => {
         userId: authUser.uid,
       };
       try {
-        const response = await fetch(`${server}/api/cart/removeAll`, {
-          method: 'POST',
-          body: JSON.stringify(payload),
-          headers: { 'Content-Type': 'application/json' },
+        const { data } = await axios.delete(`${server}/api/cart/removeAll`, {
+          data: payload,
         });
-        const data = await response.json();
-        if (data.msg === 'EMPTY_CART') {
-          alert('Cart is successfuly emptied');
+        const { msg } = data;
+        if (msg === 'EMPTY_CART') {
           const items = [];
           const totalCost = calculateTotalCost(items);
-          dispatch({ items, totalCost });
+          dispatch({ success: 'Cart emptied successfully ', items, totalCost });
         }
-      } catch (e) {}
+      } catch (e) {
+        const error_code = e?.response?.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
+      }
     }
   };
 
@@ -325,6 +336,12 @@ const CartItems = ({ userId }) => {
 
   return (
     <>
+      <Toast
+        open={state.serviceError || state.success}
+        text={state.serviceError || state.success}
+        callback={() => dispatch({ serviceError: '', success: '' })}
+        isError={state.serviceError ? true : false}
+      />
       {state.items && state.items.length > 0 ? (
         <>
           <div css={wrapper}>

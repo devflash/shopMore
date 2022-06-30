@@ -12,7 +12,9 @@ const removeAll = async (req, res) => {
 
     snapshot.forEach((doc) => doc.ref.delete());
     res.status(200).json({ msg: 'EMPTY_CART' });
-  } catch (e) {}
+  } catch (e) {
+    res.status(400).send(`${e.message}`);
+  }
 };
 
 export default removeAll;

@@ -1,6 +1,8 @@
 import { errors } from '../config/strings';
 export const getErrorMessage = (error) => {
-  const code = error.code.slice(error.code.indexOf('/') + 1);
-  console.log(code);
-  return errors[code] || 'Something went wrong';
+  let code = null;
+  if (typeof error === 'object') {
+    code = error.code.slice(error.code.indexOf('/') + 1);
+  }
+  return errors[code] || errors[error] || 'Something went wrong';
 };

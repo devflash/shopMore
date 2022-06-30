@@ -7,6 +7,9 @@ import { server } from '../../config';
 import Toast from '../common/toast';
 import { useState } from 'react';
 import { errors } from '../../config/strings';
+import axios from 'axios';
+import { getErrorMessage } from '../../utils/handleError';
+import { useReducer } from 'react';
 
 const wrapper = css`
   padding-top: 50px;
@@ -100,10 +103,20 @@ const greyback = css`
   color: #fff;
 `;
 
+const initialState = {
+  serviceError: null,
+  success: null,
+};
 const Product = ({ product }) => {
   const { authUser } = useAuth();
   const router = useRouter();
-  const [error, setError] = useState(null);
+  const [state, dispatch] = useReducer((state, newState) => {
+    return {
+      ...state,
+      ...newState,
+    };
+  }, initialState);
+
   const handleWishlist = async () => {
     if (authUser) {
       try {
@@ -111,20 +124,19 @@ const Product = ({ product }) => {
           ...product,
           userId: authUser.uid,
         };
-        const response = await fetch(`${server}/api/wishlist/add`, {
-          method: 'POST',
-          body: JSON.stringify(payload),
-          headers: { 'Content-Type': 'application/json' },
-        });
-        const data = await response.json();
-        if (data.msg === 'success') {
-          console.log('Added to wishlist');
-        }
-        if (data.error) {
-          setError(errors[data.error.slice(7)]);
+        const { data } = await axios.post(
+          `${server}/api/wishlist/add`,
+          payload
+        );
+        const { msg } = data;
+
+        if (msg === 'WISHLIST_SUCCESS') {
+          dispatch({ success: 'Product has been added to your wishlist' });
         }
       } catch (error) {
-        console.log('error response');
+        const error_code = e?.response?.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
       }
     } else {
       router.push('/signin');
@@ -138,17 +150,15 @@ const Product = ({ product }) => {
           ...product,
           userId: authUser.uid,
         };
-        const response = await fetch(`${server}/api/cart/add`, {
-          method: 'POST',
-          body: JSON.stringify(payload),
-          headers: { 'Content-Type': 'application/json' },
-        });
-        const data = await response.json();
-        if (data.msg === 'PRODUCT_ADDED_CART') {
-          // alert('Product added to cart');
+        const { data } = await axios.post(`${server}/api/cart/add`, payload);
+        const { msg } = data;
+        if (msg === 'PRODUCT_ADDED_CART') {
+          dispatch({ success: 'Product has been added to your cart' });
         }
       } catch (e) {
-        console.log(e);
+        const error_code = e?.response?.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
       }
     } else {
       router.push('/signin');
@@ -157,7 +167,12 @@ const Product = ({ product }) => {
 
   return (
     <>
-      {error && <Toast error={error} />}
+      <Toast
+        open={state.serviceError || state.success}
+        text={state.serviceError || state.success}
+        callback={() => dispatch({ serviceError: '', success: '' })}
+        isError={state.serviceError ? true : false}
+      />
       <div css={wrapper}>
         <div css={imageWrapper}>
           <Image src={product.image} alt={product.title} layout="fill" />

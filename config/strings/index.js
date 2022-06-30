@@ -8,4 +8,5 @@ export const errors = {
   'user-not-found': 'Email address does not exist',
   'too-many-requests':
     'Too many requests. Please wait we are processing your request.',
+  INVALID_USER: 'User is not valid',
 };

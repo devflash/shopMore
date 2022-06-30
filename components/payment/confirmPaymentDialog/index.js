@@ -15,14 +15,14 @@ const bold = css`
   font-weight: 600;
 `;
 
-const ConfirmPaymentDialog = ({ orderRef }) => {
+const ConfirmPaymentDialog = ({ orderRef, handleMyOrderClick }) => {
   return (
     <div css={wrapper}>
       <p>
         Your order ref <span css={bold}>{orderRef}</span> has been placed. Thank
         you for shopping with us.
       </p>
-      <Button label="My orders" />
+      <Button label="My orders" onClick={handleMyOrderClick} />
     </div>
   );
 };

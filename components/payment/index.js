@@ -10,6 +10,10 @@ import { useOrderContext, useAuth } from '../../context';
 import { server } from '../../config';
 import Dialog from '../common/dialog';
 import ConfirmPaymentDialog from './confirmPaymentDialog';
+import axios from 'axios';
+import { getErrorMessage } from '../../utils/handleError';
+import Toast from '../common/toast';
+import { useRouter } from 'next/router';
 
 const wrapper = css`
   width: 90%;
@@ -139,6 +143,8 @@ const initialState = {
   },
   showConfirmation: false,
   orderRef: null,
+  serviceError: null,
+  success: null,
 };
 
 const Payment = () => {
@@ -150,6 +156,7 @@ const Payment = () => {
   }, initialState);
   const { cart, address } = useOrderContext();
   const { authUser } = useAuth();
+  const router = useRouter();
 
   const {
     meta,
@@ -232,7 +239,7 @@ const Payment = () => {
     if (validateInput()) {
       if (state.orderRef) {
         //show error toast
-        alert('Your order has been processed');
+        dispatch({ success: 'Your order has been processed' });
         return;
       }
       const orderRef = Date.now();
@@ -253,124 +260,133 @@ const Payment = () => {
         orderRef,
       };
       try {
-        const response = await fetch(`${server}/api/order/save`, {
-          method: 'POST',
-          body: JSON.stringify(order),
-          headers: { 'content-type': 'application/json' },
-        });
-        const data = await response.json();
-        if (data.msg === 'ORDER_PLACED') {
+        const { data } = await axios.post(`${server}/api/order/save`, order);
+        const { msg } = data;
+        if (msg === 'ORDER_PLACED') {
           //SHOW DIALOG
           const payload = {
             userId: authUser.uid,
           };
-          await fetch(`${server}/api/cart/removeAll`, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-            headers: { 'Content-Type': 'application/json' },
-          });
+          await axios.delete(`${server}/api/cart/removeAll`, { data: payload });
           dispatch({ showConfirmation: true, orderRef });
         }
       } catch (e) {
-        console.log(e);
+        const error_code = e?.response?.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
       }
     }
   };
 
+  const handleMyOrderClick = () => {
+    router.push(`/order/${authUser.uid}`);
+  };
+
   return (
-    <div css={wrapper}>
-      <h1>Checkout</h1>
-      <p>Please select payment method and enter payment details.</p>
-      {Object.values(state.paymentMethods).map((cur) => (
-        <div key={cur.id} css={paymentBox}>
-          <div css={paymentMethod}>
-            <div css={paymentHead}>
-              <button
-                type="button"
-                css={radioBtn}
-                onClick={() => handleChangeMethod(cur.id)}
-              >
-                {cur.selected ? (
-                  <MdRadioButtonChecked css={radio} />
-                ) : (
-                  <MdRadioButtonUnchecked css={radio} />
-                )}
-              </button>
-
-              <p css={methodTitle}>{cur.title}</p>
-            </div>
-
-            {cur.body && (
-              <div css={paymentBody}>
-                <div css={row}>
-                  <Input
-                    value={cur.holderName}
-                    placeholder="Card holder name"
-                    customCss={inputCss}
-                    onValueChange={(e) =>
-                      handleCardInput(cur.id, 'holderName', e.target.value)
-                    }
-                  />
-                  {cur.holderNameErr && (
-                    <span css={errorCss}>{cur.holderNameErr}</span>
+    <>
+      <Toast
+        open={state.serviceError || state.success}
+        text={state.serviceError || state.success}
+        callback={() => dispatch({ serviceError: '', success: '' })}
+        isError={state.serviceError ? true : false}
+      />
+      <div css={wrapper}>
+        <h1>Checkout</h1>
+        <p>Please select payment method and enter payment details.</p>
+        {Object.values(state.paymentMethods).map((cur) => (
+          <div key={cur.id} css={paymentBox}>
+            <div css={paymentMethod}>
+              <div css={paymentHead}>
+                <button
+                  type="button"
+                  css={radioBtn}
+                  onClick={() => handleChangeMethod(cur.id)}
+                >
+                  {cur.selected ? (
+                    <MdRadioButtonChecked css={radio} />
+                  ) : (
+                    <MdRadioButtonUnchecked css={radio} />
                   )}
-                </div>
-                <div css={row}>
-                  <div css={cardInputs}>
-                    <div css={fieldWrapper}>
-                      <svg {...getCardImageProps({ images })} />
+                </button>
 
-                      <input
-                        id="cardNumber"
-                        {...getCardNumberProps({
-                          onChange: (e) =>
-                            handleCardInput(
-                              cur.id,
-                              'cardNumber',
-                              e.target.value
-                            ),
-                        })}
-                        value={state.paymentMethods.CARD.cardNumber}
-                      />
-                      <input
-                        id="expiry"
-                        {...getExpiryDateProps({
-                          onChange: (e) =>
-                            handleCardInput(
-                              cur.id,
-                              'expiryDate',
-                              e.target.value
-                            ),
-                        })}
-                        value={state.paymentMethods.CARD.expiryDate}
-                      />
-                      <input
-                        {...getCVCProps({
-                          onChange: (e) =>
-                            handleCardInput(cur.id, 'csv', e.target.value),
-                        })}
-                        value={state.paymentMethods.CARD.csv}
-                      />
+                <p css={methodTitle}>{cur.title}</p>
+              </div>
+
+              {cur.body && (
+                <div css={paymentBody}>
+                  <div css={row}>
+                    <Input
+                      value={cur.holderName}
+                      placeholder="Card holder name"
+                      customCss={inputCss}
+                      onValueChange={(e) =>
+                        handleCardInput(cur.id, 'holderName', e.target.value)
+                      }
+                    />
+                    {cur.holderNameErr && (
+                      <span css={errorCss}>{cur.holderNameErr}</span>
+                    )}
+                  </div>
+                  <div css={row}>
+                    <div css={cardInputs}>
+                      <div css={fieldWrapper}>
+                        <svg {...getCardImageProps({ images })} />
+
+                        <input
+                          id="cardNumber"
+                          {...getCardNumberProps({
+                            onChange: (e) =>
+                              handleCardInput(
+                                cur.id,
+                                'cardNumber',
+                                e.target.value
+                              ),
+                          })}
+                          value={state.paymentMethods.CARD.cardNumber}
+                        />
+                        <input
+                          id="expiry"
+                          {...getExpiryDateProps({
+                            onChange: (e) =>
+                              handleCardInput(
+                                cur.id,
+                                'expiryDate',
+                                e.target.value
+                              ),
+                          })}
+                          value={state.paymentMethods.CARD.expiryDate}
+                        />
+                        <input
+                          {...getCVCProps({
+                            onChange: (e) =>
+                              handleCardInput(cur.id, 'csv', e.target.value),
+                          })}
+                          value={state.paymentMethods.CARD.csv}
+                        />
+                      </div>
+                      {cur.cardErr && <span css={errorCss}>{cur.cardErr}</span>}
                     </div>
-                    {cur.cardErr && <span css={errorCss}>{cur.cardErr}</span>}
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
 
-      <Button label="Pay" customCss={payBtn} onClick={handlePay}></Button>
-      <Dialog
-        show={state.showConfirmation}
-        onClose={() => {
-          dispatch({ showConfirmation: false });
-        }}
-      >
-        <ConfirmPaymentDialog orderRef={state.orderRef} />
-      </Dialog>
-    </div>
+        <Button label="Pay" customCss={payBtn} onClick={handlePay}></Button>
+        <Dialog
+          show={state.showConfirmation}
+          onClose={() => {
+            dispatch({ showConfirmation: false });
+          }}
+        >
+          <ConfirmPaymentDialog
+            orderRef={state.orderRef}
+            handleMyOrderClick={handleMyOrderClick}
+          />
+        </Dialog>
+      </div>
+    </>
   );
 };
 

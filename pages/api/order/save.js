@@ -11,7 +11,7 @@ const save = async (req, res) => {
 
     res.status(200).json({ msg: 'ORDER_PLACED' });
   } catch (e) {
-    throw e;
+    res.status(400).send(`${e.message}`);
   }
 };
 
