@@ -12,6 +12,9 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import { getErrorMessage } from '../../utils/handleError';
 import Toast from '../common/toast';
+import Loader from '../common/loader';
+import useLoader from '../../hooks/useLoader';
+import Currency from '../common/currency';
 
 const wrapper = css`
   width: 90%;
@@ -186,6 +189,11 @@ const mgRight5 = css`
   margin-right: 5px;
 `;
 
+const cost = css`
+  display: flex;
+  align-items: center;
+`;
+
 const initialState = {
   totalCost: 0,
   serviceError: null,
@@ -196,6 +204,8 @@ const CartItems = ({ userId }) => {
   const { authUser } = useAuth();
   const { cart, updateCart } = useOrderContext();
   const router = useRouter();
+  const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
+
   const [state, dispatch] = useReducer((state, newState) => {
     return {
       ...state,
@@ -215,6 +225,8 @@ const CartItems = ({ userId }) => {
     const fetchData = async () => {
       try {
         //start loader
+        setLoading({ isLoading: true, isBackdrop: false });
+
         const { data } = await axios.get(`${server}/api/cart/${userId}`);
         const { msg, items } = data;
         if (msg === 'CART_FETCHED') {
@@ -226,6 +238,7 @@ const CartItems = ({ userId }) => {
         const serviceError = getErrorMessage(error_code);
         dispatch({ serviceError });
       }
+      setLoading({ isLoading: false, isBackdrop: false });
     };
     userId && fetchData();
   }, [userId]);
@@ -237,6 +250,8 @@ const CartItems = ({ userId }) => {
     };
 
     try {
+      setLoading({ isLoading: true, isBackdrop: true });
+
       const { data } = await axios.post(`${server}/api/wishlist/add`, payload);
       const { msg } = data;
       if (msg === 'WISHLIST_SUCCESS') {
@@ -247,6 +262,7 @@ const CartItems = ({ userId }) => {
       const serviceError = getErrorMessage(error_code);
       dispatch({ serviceError });
     }
+    setLoading({ isLoading: false, isBackdrop: false });
   };
 
   const removeFromCart = async (itemId) => {
@@ -259,6 +275,8 @@ const CartItems = ({ userId }) => {
         userId: authUser.uid,
       };
       try {
+        setLoading({ isLoading: true, isBackdrop: true });
+
         const { data } = await axios.delete(`${server}/api/cart/remove`, {
           data: payload,
         });
@@ -277,6 +295,7 @@ const CartItems = ({ userId }) => {
         const serviceError = getErrorMessage(error_code);
         dispatch({ serviceError });
       }
+      setLoading({ isLoading: false, isBackdrop: false });
     }
   };
 
@@ -287,6 +306,8 @@ const CartItems = ({ userId }) => {
         userId: authUser.uid,
       };
       try {
+        setLoading({ isLoading: true, isBackdrop: false });
+
         const { data } = await axios.delete(`${server}/api/cart/removeAll`, {
           data: payload,
         });
@@ -301,6 +322,7 @@ const CartItems = ({ userId }) => {
         const serviceError = getErrorMessage(error_code);
         dispatch({ serviceError });
       }
+      setLoading({ isLoading: false, isBackdrop: true });
     }
   };
 
@@ -342,6 +364,8 @@ const CartItems = ({ userId }) => {
         callback={() => dispatch({ serviceError: '', success: '' })}
         isError={state.serviceError ? true : false}
       />
+      <Loader isLoading={isLoading} isBackdrop={isBackdrop} />
+
       {state.items && state.items.length > 0 ? (
         <>
           <div css={wrapper}>
@@ -363,9 +387,12 @@ const CartItems = ({ userId }) => {
                     <div css={productSection}>
                       <div css={productDesc}>
                         <p css={[primary, bold]}>{item.title}</p>
-                        <p>
+                        <p css={cost}>
                           <span>Cost: </span>
-                          <span>{item.price}</span>
+                          <span css={cost}>
+                            <Currency />
+                            {item.price}
+                          </span>
                         </p>
                       </div>
                       <div css={quantitySec}>
@@ -416,9 +443,12 @@ const CartItems = ({ userId }) => {
                 </a>
               </Link>
               <div>
-                <div css={footerCost}>
+                <div css={[footerCost]}>
                   <span>Total:</span>
-                  <span>{state.totalCost}</span>
+                  <span>
+                    <Currency />
+                    {state.totalCost}
+                  </span>
                 </div>
                 <Button
                   label="Checkout"

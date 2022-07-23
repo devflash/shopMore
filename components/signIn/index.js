@@ -6,6 +6,9 @@ import { useAuth } from '../../context';
 import { useRouter } from 'next/router';
 import { getErrorMessage } from '../../utils/handleError';
 import Toast from '../common/toast';
+import Loader from '../common/loader';
+import useLoader from '../../hooks/useLoader';
+
 const flex = css`
   display: flex;
   align-items: center;
@@ -73,6 +76,7 @@ const SignIn = () => {
 
   const { signInUser } = useAuth();
   const router = useRouter();
+  const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
 
   const onEmailChanged = (email) => {
     dispatch({ email, emailError: null });
@@ -101,6 +105,8 @@ const SignIn = () => {
   const handleUserLogin = async (e) => {
     e.preventDefault();
     if (validateInput()) {
+      setLoading({ isLoading: true, isBackdrop: true });
+
       try {
         await signInUser(state.email, state.password);
         router.push('/');
@@ -109,6 +115,7 @@ const SignIn = () => {
         dispatch({ serviceError });
       }
     }
+    setLoading({ isLoading: false, isBackdrop: false });
   };
 
   return (
@@ -119,6 +126,7 @@ const SignIn = () => {
         callback={() => dispatch({ serviceError: '' })}
         isError={true}
       />
+      <Loader isLoading={isLoading} isBackdrop={isBackdrop} />
 
       <div css={wrapper}>
         <h1>ShopMore</h1>

@@ -14,6 +14,8 @@ import axios from 'axios';
 import { getErrorMessage } from '../../utils/handleError';
 import Toast from '../common/toast';
 import { useRouter } from 'next/router';
+import Loader from '../common/loader';
+import useLoader from '../../hooks/useLoader';
 
 const wrapper = css`
   width: 90%;
@@ -157,6 +159,7 @@ const Payment = () => {
   const { cart, address } = useOrderContext();
   const { authUser } = useAuth();
   const router = useRouter();
+  const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
 
   const {
     meta,
@@ -260,6 +263,7 @@ const Payment = () => {
         orderRef,
       };
       try {
+        setLoading({ isLoading: true, isBackdrop: true });
         const { data } = await axios.post(`${server}/api/order/save`, order);
         const { msg } = data;
         if (msg === 'ORDER_PLACED') {
@@ -275,11 +279,12 @@ const Payment = () => {
         const serviceError = getErrorMessage(error_code);
         dispatch({ serviceError });
       }
+      setLoading({ isLoading: false, isBackdrop: false });
     }
   };
 
   const handleMyOrderClick = () => {
-    router.push(`/order/${authUser.uid}`);
+    router.push(`/orders/${authUser.uid}`);
   };
 
   return (
@@ -290,6 +295,8 @@ const Payment = () => {
         callback={() => dispatch({ serviceError: '', success: '' })}
         isError={state.serviceError ? true : false}
       />
+      <Loader isLoading={isLoading} isBackdrop={isBackdrop} />
+
       <div css={wrapper}>
         <h1>Checkout</h1>
         <p>Please select payment method and enter payment details.</p>

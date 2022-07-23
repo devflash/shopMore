@@ -2,6 +2,7 @@
 import { css } from '@emotion/react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Currency from '../common/currency';
 
 const wrapper = css`
   width: 90vw;
@@ -53,6 +54,11 @@ const productinfo = css`
   }
 `;
 
+const cost = css`
+  display: flex;
+  align-items: center;
+`;
+
 const Products = ({ products }) => (
   <div css={wrapper}>
     {products.map((cur) => (
@@ -65,7 +71,10 @@ const Products = ({ products }) => (
 
             <h3>{cur.title}</h3>
             <div css={productinfo}>
-              <span>Cost: {cur.price}</span>
+              <span css={cost}>
+                Cost: <Currency />
+                {cur.price}
+              </span>
               <span>Rating: {cur.rating}</span>
             </div>
           </div>

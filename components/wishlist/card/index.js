@@ -2,6 +2,7 @@
 import { css } from '@emotion/react';
 import Image from 'next/image';
 import Button from '../../common/button';
+import Currency from '../../common/currency';
 
 const box = css`
   background-color: #fff;
@@ -36,7 +37,7 @@ const outOfStock = css`
   font-weight: bold;
 `;
 
-const cost = css`
+const productInfo = css`
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
@@ -59,6 +60,11 @@ const productTitle = css`
   font-weight: 800;
 `;
 
+const cost = css`
+  display: flex;
+  align-items: center;
+`;
+
 const Card = ({ data, handleAddToCart, handleRemove }) => (
   <div css={box}>
     <div css={imageWrapper}>
@@ -67,8 +73,11 @@ const Card = ({ data, handleAddToCart, handleRemove }) => (
     <div css={info}>
       <p css={productTitle}>{data.title}</p>
       <p>Category: {data.category}</p>
-      <p css={cost}>
-        <span>Cost: {data.price}</span>
+      <p css={productInfo}>
+        <span css={cost}>
+          Cost: <Currency />
+          {data.price}
+        </span>
         <span css={data.stock > 0 ? inStock : outOfStock}>
           {data.stock > 0 ? 'In stock' : 'Out of stock'}
         </span>

@@ -8,6 +8,8 @@ import { useRouter } from 'next/router';
 import Button from '../common/button';
 import { getErrorMessage } from '../../utils/handleError';
 import Toast from '../common/toast';
+import Loader from '../common/loader';
+import useLoader from '../../hooks/useLoader';
 
 const flex = css`
   display: flex;
@@ -71,6 +73,7 @@ const SignUp = () => {
   const [state, dispatch] = useReducer((state, newState) => {
     return { ...state, ...newState };
   }, initialState);
+  const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
 
   const onFirstNameChanged = (firstName) => {
     dispatch({ firstName, firstNameError: null });
@@ -111,6 +114,8 @@ const SignUp = () => {
   const handleCreateAccount = async (event) => {
     event.preventDefault();
     if (validateInput()) {
+      setLoading({ isLoading: true, isBackdrop: true });
+
       try {
         const user = await createUser(
           state.email,
@@ -136,6 +141,7 @@ const SignUp = () => {
         console.log(e.code);
       }
     }
+    setLoading({ isLoading: false, isBackdrop: false });
   };
   return (
     <div css={flex}>
@@ -145,6 +151,8 @@ const SignUp = () => {
         callback={() => dispatch({ serviceError: '', success: '' })}
         isError={state.serviceError ? true : false}
       />
+      <Loader isLoading={isLoading} isBackdrop={isBackdrop} />
+
       <div css={wrapper}>
         <h1>ShopMore</h1>
         <div css={container}>

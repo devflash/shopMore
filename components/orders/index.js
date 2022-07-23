@@ -9,6 +9,8 @@ import axios from 'axios';
 import { getErrorMessage } from '../../utils/handleError';
 import Toast from '../common/toast';
 import { useRouter } from 'next/router';
+import Loader from '../common/loader';
+import useLoader from '../../hooks/useLoader';
 
 const wrapper = css`
   width: 90%;
@@ -135,10 +137,14 @@ const Orders = ({ userId }) => {
     };
   }, initialState);
 
+  const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
+
   useEffect(() => {
     const fetchData = async () => {
       //start loader
       try {
+        setLoading({ isLoading: true, isBackdrop: false });
+
         const { data } = await axios.get(`${server}/api/orders/${userId}`);
         const { msg } = data;
 
@@ -151,12 +157,15 @@ const Orders = ({ userId }) => {
         dispatch({ serviceError });
       }
       //stop loader
+      setLoading({ isLoading: false, isBackdrop: false });
     };
     userId && fetchData();
   }, [userId]);
 
   const cancelOrder = async (orderRef) => {
     try {
+      setLoading({ isLoading: true, isBackdrop: true });
+
       const { data } = await axios.delete(
         `${server}/api/order/cancel/${authUser.uid}/${orderRef}`
       );
@@ -176,6 +185,7 @@ const Orders = ({ userId }) => {
       const serviceError = getErrorMessage(error_code);
       dispatch({ serviceError });
     }
+    setLoading({ isLoading: false, isBackdrop: false });
   };
 
   const handleBuyAgain = async (item) => {
@@ -183,6 +193,8 @@ const Orders = ({ userId }) => {
       ...item,
     };
     try {
+      setLoading({ isLoading: true, isBackdrop: true });
+
       const { data } = await axios.post(`${server}/api/cart/add`, payload);
       const { msg } = data;
       if (msg === 'PRODUCT_ADDED_CART') {
@@ -193,6 +205,7 @@ const Orders = ({ userId }) => {
       const serviceError = getErrorMessage(error_code);
       dispatch({ serviceError });
     }
+    setLoading({ isLoading: false, isBackdrop: false });
   };
 
   const handleContinueShopping = (e) => {
@@ -208,6 +221,8 @@ const Orders = ({ userId }) => {
         callback={() => dispatch({ serviceError: '', success: '' })}
         isError={state.serviceError ? true : false}
       />
+      <Loader isLoading={isLoading} isBackdrop={isBackdrop} />
+
       <div css={wrapper}>
         <h1>Track your orders</h1>
         <div css={ordersBox}>
