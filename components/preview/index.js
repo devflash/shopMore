@@ -2,7 +2,7 @@
 import { css } from '@emotion/react';
 import Image from 'next/image';
 import Button from '../common/button';
-import { useOrderContext } from '../../context';
+import { useOrderContext, useAuth } from '../../context';
 import { useRouter } from 'next/router';
 
 const wrapper = css`
@@ -106,6 +106,7 @@ const summary = css`
 const Preview = () => {
   const { cart, address } = useOrderContext();
   const router = useRouter();
+  const { authUser } = useAuth();
   return (
     <div css={wrapper}>
       <h1>Order confirmation</h1>
@@ -141,7 +142,13 @@ const Preview = () => {
         <div css={row}>
           <div css={rowTop}>
             <p>Address</p>
-            <Button label="Edit" customCss={editButton}></Button>
+            <Button
+              label="Edit"
+              customCss={editButton}
+              onClick={() => {
+                router.push(`/address/${authUser.uid}`);
+              }}
+            ></Button>
           </div>
           <div css={addressText}>
             <span css={boldBlack}>{address?.fullName} </span>
