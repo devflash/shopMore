@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Layout from '../components/layout';
 import Products from '../components/products';
 import { server } from '../config';
+import axios from 'axios';
 
 export default function Home({ products }) {
   return (
@@ -21,11 +22,11 @@ export default function Home({ products }) {
 }
 
 export const getServerSideProps = async () => {
-  const response = await fetch(`http://localhost:3000/api/products`);
-  const products = await response.json();
+  const { data } = await axios.get(`http://localhost:3001/api/products`);
+
   return {
     props: {
-      products: products,
+      products: data,
     },
   };
 };

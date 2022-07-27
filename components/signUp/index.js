@@ -120,21 +120,19 @@ const SignUp = () => {
         const user = await createUser(
           state.email,
           state.password,
-          `${state.firstName} ${state.lastName}`
+          state.firstName,
+          state.lastName
         );
-        const payload = {
-          firstName: state.firstName,
-          lastName: state.lastName,
-        };
-        await firestore.collection('users').doc(user.user.id).set(payload);
-        dispatch({
-          firstName: '',
-          lastName: '',
-          email: '',
-          password: '',
-          success: 'Your account has been created successfuly',
-        });
-        router.push(' /');
+        if (user.msg === 'ACCOUNT_CREATED') {
+          dispatch({
+            firstName: '',
+            lastName: '',
+            email: '',
+            password: '',
+            success: 'Your account has been created successfuly',
+          });
+          router.push(' /');
+        }
       } catch (e) {
         const errorMessage = getErrorMessage(e);
         dispatch({ serviceError: errorMessage });

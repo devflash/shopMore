@@ -8,6 +8,7 @@ import { getErrorMessage } from '../../utils/handleError';
 import Toast from '../common/toast';
 import Loader from '../common/loader';
 import useLoader from '../../hooks/useLoader';
+import axios from 'axios';
 
 const flex = css`
   display: flex;
@@ -75,6 +76,7 @@ const SignIn = () => {
   }, initialState);
 
   const { signInUser } = useAuth();
+  console.log(signInUser);
   const router = useRouter();
   const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
 
@@ -108,9 +110,12 @@ const SignIn = () => {
       setLoading({ isLoading: true, isBackdrop: true });
 
       try {
-        await signInUser(state.email, state.password);
-        router.push('/');
+        debugger;
+        console.log(signInUser);
+        const data = await signInUser(state.email, state.password);
+        if (data.msg === 'SIGNED_IN_SUCCESS') router.push('/');
       } catch (e) {
+        debugger;
         const serviceError = getErrorMessage(e);
         dispatch({ serviceError });
       }

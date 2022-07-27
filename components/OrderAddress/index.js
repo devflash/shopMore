@@ -372,6 +372,7 @@ const OrderAddress = ({ userId }) => {
         const { msg } = data;
 
         if (msg === 'ADDRESS_ADDED') {
+          debugger;
           dispatch({
             userAddresses: [...state.userAddresses, address],
             showConfirmation: false,
@@ -380,17 +381,15 @@ const OrderAddress = ({ userId }) => {
               ...initialState.inputs,
             },
           });
+          navigateToPreview(address);
         }
       } catch (e) {
         const error_code = e?.response?.data;
         const serviceError = getErrorMessage(error_code);
         dispatch({ serviceError });
       }
-      setLoading({ isLoading: false, isBackdrop: false });
     }
-    setTimeout(() => {
-      navigateToPreview(address);
-    }, 5000);
+    // setLoading({ isLoading: false, isBackdrop: false });
   };
 
   const toggleAddressDialog = () =>
