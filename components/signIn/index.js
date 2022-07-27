@@ -76,6 +76,7 @@ const SignIn = () => {
   }, initialState);
 
   const { signInUser } = useAuth();
+  console.log(signInUser);
   const router = useRouter();
   const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
 
@@ -109,6 +110,8 @@ const SignIn = () => {
       setLoading({ isLoading: true, isBackdrop: true });
 
       try {
+        debugger;
+        console.log(signInUser);
         const data = await signInUser(state.email, state.password);
         if (data.msg === 'SIGNED_IN_SUCCESS') router.push('/');
       } catch (e) {
