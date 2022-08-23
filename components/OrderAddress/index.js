@@ -372,7 +372,6 @@ const OrderAddress = ({ userId }) => {
         const { msg } = data;
 
         if (msg === 'ADDRESS_ADDED') {
-          debugger;
           dispatch({
             userAddresses: [...state.userAddresses, address],
             showConfirmation: false,

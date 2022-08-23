@@ -3,7 +3,6 @@ import { useReducer } from 'react';
 import { css } from '@emotion/react';
 import Input from '../common/input';
 import { useAuth } from '../../context';
-import { firestore } from '../../utils/firebase';
 import { useRouter } from 'next/router';
 import Button from '../common/button';
 import { getErrorMessage } from '../../utils/handleError';
@@ -136,7 +135,6 @@ const SignUp = () => {
       } catch (e) {
         const errorMessage = getErrorMessage(e);
         dispatch({ serviceError: errorMessage });
-        console.log(e.code);
       }
     }
     setLoading({ isLoading: false, isBackdrop: false });

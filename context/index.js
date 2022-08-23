@@ -19,7 +19,6 @@ const orderContext = createContext({
 const AuthContextProvider = ({ children }) => {
   const auth = useFireBaseAuth();
   const order = useOrders();
-  console.log(order);
   return (
     <authContext.Provider value={auth}>
       <orderContext.Provider value={order}>{children}</orderContext.Provider>
