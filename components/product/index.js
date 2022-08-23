@@ -7,7 +7,7 @@ import { server } from '../../config';
 import Toast from '../common/toast';
 import axios from 'axios';
 import { getErrorMessage } from '../../utils/handleError';
-import { useReducer } from 'react';
+import { useEffect, useReducer } from 'react';
 import Loader from '../common/loader';
 import useLoader from '../../hooks/useLoader';
 import Currency from '../common/currency';
@@ -113,7 +113,7 @@ const initialState = {
   serviceError: null,
   success: null,
 };
-const Product = ({ product }) => {
+const Product = ({ productId }) => {
   const { authUser } = useAuth();
   const router = useRouter();
   const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
@@ -125,12 +125,29 @@ const Product = ({ product }) => {
     };
   }, initialState);
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading({ isLoading: true, isBackdrop: false });
+
+      try {
+        const { data } = await axios.get(`${server}/api/product/${productId}`);
+        dispatch({ product: data });
+      } catch (e) {
+        const error_code = e.response.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
+      }
+      setLoading({ isLoading: false, isBackdrop: false });
+    };
+    fetchProduct();
+  }, [productId]);
+
   const handleWishlist = async () => {
     if (authUser) {
       setLoading({ isLoading: true, isBackdrop: true });
       try {
         const payload = {
-          ...product,
+          ...state.product,
           userId: authUser.uid,
         };
         const { data } = await axios.post(
@@ -158,7 +175,7 @@ const Product = ({ product }) => {
       setLoading({ isLoading: true, isBackdrop: true });
       try {
         const payload = {
-          ...product,
+          ...state.product,
           userId: authUser.uid,
         };
         const { data } = await axios.post(`${server}/api/cart/add`, payload);
@@ -186,49 +203,57 @@ const Product = ({ product }) => {
         isError={state.serviceError ? true : false}
       />
       <Loader isLoading={isLoading} isBackdrop={isBackdrop} />
-      <div css={wrapper}>
-        <div css={imageWrapper}>
-          <Image src={product.image} alt={product.title} layout="fill" />
-        </div>
-        <div css={info}>
-          <h2>{product.title}</h2>
-          <div css={productinfo}>
-            <div css={row}>
-              <span css={cost}>
-                Price: <Currency />
-                {product.price}
-              </span>
-              <span>Rating: {product.rating}</span>
+      {state.product && (
+        <>
+          <div css={wrapper}>
+            <div css={imageWrapper}>
+              <Image
+                src={state.product.image}
+                alt={state.product.title}
+                layout="fill"
+              />
             </div>
-            <div css={row}>
-              <span>Category: {product.category}</span>
-              <span>
-                Status:{' '}
-                <span css={product.stock > 0 ? inStock : outOfStock}>
-                  {product.stock > 0 ? 'In stock' : 'Out of stock'}
-                </span>
-              </span>
+            <div css={info}>
+              <h2>{state.product.title}</h2>
+              <div css={productinfo}>
+                <div css={row}>
+                  <span css={cost}>
+                    Price: <Currency />
+                    {state.product.price}
+                  </span>
+                  <span>Rating: {state.product.rating}</span>
+                </div>
+                <div css={row}>
+                  <span>Category: {state.product.category}</span>
+                  <span>
+                    Status:{' '}
+                    <span css={state.product.stock > 0 ? inStock : outOfStock}>
+                      {state.product.stock > 0 ? 'In stock' : 'Out of stock'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+              <p>{state.product.description}</p>
+              <div css={btnContainer}>
+                <button type="button" css={productBtn} onClick={handleWishlist}>
+                  Add to wishlist
+                </button>
+                <button
+                  type="button"
+                  disabled={state.product.stock <= 0}
+                  onClick={handleAddToCart}
+                  css={[productBtn, state.product.stock <= 0 && greyback]}
+                >
+                  Add to cart
+                </button>
+              </div>
             </div>
           </div>
-          <p>{product.description}</p>
-          <div css={btnContainer}>
-            <button type="button" css={productBtn} onClick={handleWishlist}>
-              Add to wishlist
-            </button>
-            <button
-              type="button"
-              disabled={product.stock <= 0}
-              onClick={handleAddToCart}
-              css={[productBtn, product.stock <= 0 && greyback]}
-            >
-              Add to cart
-            </button>
-          </div>
-        </div>
-      </div>
-      <button type="button" css={fixedCartBtn}>
-        Add to cart
-      </button>
+          <button type="button" css={fixedCartBtn}>
+            Add to cart
+          </button>
+        </>
+      )}
     </>
   );
 };

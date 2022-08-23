@@ -1,8 +1,14 @@
 /** @jsxImportSource @emotion/react */
+import { useEffect, useReducer } from 'react';
 import { css } from '@emotion/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Currency from '../common/currency';
+import axios from 'axios';
+import { server } from '../../config';
+import Loader from '../common/loader';
+import useLoader from '../../hooks/useLoader';
+import { getErrorMessage } from '../../utils/handleError';
 
 const wrapper = css`
   width: 90vw;
@@ -59,29 +65,65 @@ const cost = css`
   align-items: center;
 `;
 
-const Products = ({ products }) => (
-  <div css={wrapper}>
-    {products.map((cur) => (
-      <Link href={`/product/${cur.productId}`} key={cur.id} passHref>
-        <a css={productLink}>
-          <div css={card}>
-            <div css={imageWrapper}>
-              <Image src={cur.image} alt={cur.title} layout="fill" />
-            </div>
+const initialState = {};
 
-            <h3>{cur.title}</h3>
-            <div css={productinfo}>
-              <span css={cost}>
-                Cost: <Currency />
-                {cur.price}
-              </span>
-              <span>Rating: {cur.rating}</span>
-            </div>
-          </div>
-        </a>
-      </Link>
-    ))}
-  </div>
-);
+const Products = () => {
+  const [state, dispatch] = useReducer((state, newState) => {
+    return {
+      ...state,
+      ...newState,
+    };
+  }, initialState);
+
+  const [{ isLoading, isBackdrop }, setLoading] = useLoader({});
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading({ isLoading: true, isBackdrop: false });
+
+      try {
+        const { data } = await axios.get(`${server}/api/products`);
+        dispatch({ products: data });
+      } catch (e) {
+        const error_code = e.response.data;
+        const serviceError = getErrorMessage(error_code);
+        dispatch({ serviceError });
+      }
+      setLoading({ isLoading: false, isBackdrop: false });
+    };
+    fetchProducts();
+  }, []);
+
+  return (
+    <>
+      <Loader isLoading={isLoading} isBackdrop={isBackdrop} />
+
+      {state?.products?.length > 0 && (
+        <div css={wrapper}>
+          {state.products.map((cur) => (
+            <Link href={`/product/${cur.productId}`} key={cur.id} passHref>
+              <a css={productLink}>
+                <div css={card}>
+                  <div css={imageWrapper}>
+                    <Image src={cur.image} alt={cur.title} layout="fill" />
+                  </div>
+
+                  <h3>{cur.title}</h3>
+                  <div css={productinfo}>
+                    <span css={cost}>
+                      Cost: <Currency />
+                      {cur.price}
+                    </span>
+                    <span>Rating: {cur.rating}</span>
+                  </div>
+                </div>
+              </a>
+            </Link>
+          ))}
+        </div>
+      )}
+    </>
+  );
+};
 
 export default Products;
