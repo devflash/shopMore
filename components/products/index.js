@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { useEffect, useReducer } from 'react';
 import { css } from '@emotion/react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import Link from 'next/link';
 import Currency from '../common/currency';
 import axios from 'axios';
@@ -65,6 +65,11 @@ const cost = css`
   align-items: center;
 `;
 
+const imageStyle = css`
+  height: 100%;
+  width: 100%;
+`;
+
 const initialState = {};
 
 const Products = () => {
@@ -105,7 +110,7 @@ const Products = () => {
               <a css={productLink}>
                 <div css={card}>
                   <div css={imageWrapper}>
-                    <Image src={cur.image} alt={cur.title} layout="fill" />
+                    <img src={cur.image} alt={cur.title} css={imageStyle} />
                   </div>
 
                   <h3>{cur.title}</h3>

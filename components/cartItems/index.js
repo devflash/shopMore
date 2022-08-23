@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
 import { useReducer, useEffect } from 'react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { FaMinus, FaPlus } from 'react-icons/fa';
 import Button from '../common/button';
 import { server } from '../../config/index';
@@ -194,6 +194,11 @@ const cost = css`
   align-items: center;
 `;
 
+const imageStyle = css`
+  height: 100%;
+  width: 100%;
+`;
+
 const initialState = {
   totalCost: 0,
   serviceError: null,
@@ -380,7 +385,7 @@ const CartItems = ({ userId }) => {
               <div css={cartMain}>
                 <div css={flex}>
                   <div css={imageWrapper}>
-                    <Image src={item.image} alt={item.title} layout="fill" />
+                    <img src={item.image} alt={item.title} css={imageStyle} />
                   </div>
 
                   <div css={rightSection}>

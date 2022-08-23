@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import Button from '../common/button';
 import { useAuth } from '../../context';
 import { server } from '../../config';
@@ -120,6 +120,11 @@ const noOrderBox = css`
   h3 {
     margin-bottom: 20px;
   }
+`;
+
+const imageStyle = css`
+  height: 100%;
+  width: 100%;
 `;
 
 const initialState = {
@@ -256,10 +261,10 @@ const Orders = ({ userId }) => {
                     cur.items.map((item) => (
                       <div key={item.id} css={orderBody}>
                         <div css={imageWrapper}>
-                          <Image
+                          <img
                             src={item.image}
                             alt={item.title}
-                            layout="fill"
+                            css={imageStyle}
                           />
                         </div>
                         <div css={productDetails}>

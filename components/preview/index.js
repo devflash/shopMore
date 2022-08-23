@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import Button from '../common/button';
 import { useOrderContext, useAuth } from '../../context';
 import { useRouter } from 'next/router';
@@ -103,6 +103,11 @@ const summary = css`
   }
 `;
 
+const imageStyle = css`
+  height: 100%;
+  width: 100%;
+`;
+
 const Preview = () => {
   const { cart, address } = useOrderContext();
   const router = useRouter();
@@ -120,7 +125,7 @@ const Preview = () => {
             cart.items.map((item) => (
               <div key={item.id} css={productBox}>
                 <div css={imageWrapper}>
-                  <Image src={item.image} alt={item.title} layout="fill" />
+                  <img src={item.image} alt={item.title} css={imageStyle} />
                 </div>
                 <div css={productInfo}>
                   <div>

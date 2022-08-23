@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { useAuth } from '../../context';
 import { useRouter } from 'next/router';
 import { server } from '../../config';
@@ -109,6 +109,11 @@ const cost = css`
   align-items: center;
 `;
 
+const imageStyle = css`
+  height: 100%;
+  width: 100%;
+`;
+
 const initialState = {
   serviceError: null,
   success: null,
@@ -207,10 +212,10 @@ const Product = ({ productId }) => {
         <>
           <div css={wrapper}>
             <div css={imageWrapper}>
-              <Image
+              <img
                 src={state.product.image}
                 alt={state.product.title}
-                layout="fill"
+                css={imageStyle}
               />
             </div>
             <div css={info}>

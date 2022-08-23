@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import Button from '../../common/button';
 import Currency from '../../common/currency';
 
@@ -65,10 +65,15 @@ const cost = css`
   align-items: center;
 `;
 
+const imageStyle = css`
+  height: 100%;
+  width: 100%;
+`;
+
 const Card = ({ data, handleAddToCart, handleRemove }) => (
   <div css={box}>
     <div css={imageWrapper}>
-      <Image src={data.image} alt={data.title} layout="fill" />
+      <img src={data.image} alt={data.title} css={imageStyle} />
     </div>
     <div css={info}>
       <p css={productTitle}>{data.title}</p>
